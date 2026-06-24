@@ -130,18 +130,6 @@ function UsersPage() {
         </CardContent>
       </Card>
 
-      <Button
-        variant="outline"
-        onClick={async () => {
-          const { data } = await supabase.auth.getUser();
-          if (!data.user) return;
-          await supabase.from("user_roles").upsert({ user_id: data.user.id, role: "admin" }, { onConflict: "user_id,role" });
-          toast.success("Vous êtes maintenant administrateur");
-          qc.invalidateQueries({ queryKey: ["admin-users"] });
-        }}
-      >
-        Me promouvoir administrateur (debug)
-      </Button>
     </div>
   );
 }
