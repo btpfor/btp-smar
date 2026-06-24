@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_LABELS, type ProjectStatus } from "@/lib/roles";
+import { AdminBootstrap } from "@/components/AdminBootstrap";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Tableau de bord — Well Done Services" }] }),
@@ -68,6 +69,8 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <AdminBootstrap />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Tableau de bord</h1>
