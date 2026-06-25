@@ -107,14 +107,15 @@ function DocumentsPage() {
     navigate({ to: "/documents", search: { folder: fid, project: projectId } });
 
   const createFolder = useMutation({
-    mutationFn: async (name: string) => {
-      const parsed = z.string().trim().min(1).max(100).safeParse(name);
+    mutationFn: async (input: { name: string; allowedRoles: AppRole[] }) => {
+      const parsed = z.string().trim().min(1).max(100).safeParse(input.name);
       if (!parsed.success) throw new Error("Nom invalide");
       const { error } = await supabase.from("folders").insert({
         name: parsed.data,
         parent_id: folderId ?? null,
         project_id: projectId ?? null,
         created_by: user?.id,
+        allowed_roles: input.allowedRoles.length > 0 ? input.allowedRoles : null,
       });
       if (error) throw error;
     },
