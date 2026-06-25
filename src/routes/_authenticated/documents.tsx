@@ -12,7 +12,11 @@ import {
   Home,
   Download,
   Trash2,
+  Lock,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ROLE_LABELS, type AppRole } from "@/lib/roles";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -215,7 +219,7 @@ function DocumentsPage() {
                   <FolderPlus className="mr-2 h-4 w-4" /> Dossier
                 </Button>
               </DialogTrigger>
-              <NewFolderDialog onCreate={(n) => createFolder.mutate(n)} pending={createFolder.isPending} />
+              <NewFolderDialog onCreate={(name, allowedRoles) => createFolder.mutate({ name, allowedRoles })} pending={createFolder.isPending} />
             </Dialog>
           )}
           <input
@@ -262,16 +266,33 @@ function DocumentsPage() {
             <section>
               <h2 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Dossiers</h2>
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {childFolders.map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => goTo(f.id)}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-4 text-left hover:border-accent hover:shadow-sm"
-                  >
-                    <Folder className="h-6 w-6 text-accent" />
-                    <span className="truncate font-medium">{f.name}</span>
-                  </button>
-                ))}
+                {childFolders.map((f) => {
+                  const restricted: AppRole[] = (f as { allowed_roles?: AppRole[] | null }).allowed_roles ?? [];
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => goTo(f.id)}
+                      className="flex items-start gap-3 rounded-lg border bg-card p-4 text-left hover:border-accent hover:shadow-sm"
+                    >
+                      <Folder className="h-6 w-6 shrink-0 text-accent" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1">
+                          <span className="truncate font-medium">{f.name}</span>
+                          {restricted.length > 0 && <Lock className="h-3 w-3 text-muted-foreground" />}
+                        </div>
+                        {restricted.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {restricted.map((r) => (
+                              <Badge key={r} variant="secondary" className="text-[10px]">
+                                {ROLE_LABELS[r]}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -318,8 +339,18 @@ function DocumentsPage() {
   );
 }
 
-function NewFolderDialog({ onCreate, pending }: { onCreate: (n: string) => void; pending: boolean }) {
+function NewFolderDialog({
+  onCreate,
+  pending,
+}: {
+  onCreate: (name: string, allowedRoles: AppRole[]) => void;
+  pending: boolean;
+}) {
   const [name, setName] = useState("");
+  const [allowed, setAllowed] = useState<AppRole[]>([]);
+  const toggle = (r: AppRole) =>
+    setAllowed((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]));
+
   return (
     <DialogContent className="max-w-sm">
       <DialogHeader>
@@ -328,16 +359,34 @@ function NewFolderDialog({ onCreate, pending }: { onCreate: (n: string) => void;
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          onCreate(name);
+          onCreate(name, allowed);
           setName("");
+          setAllowed([]);
         }}
-        className="space-y-3"
+        className="space-y-4"
       >
         <div>
           <Label htmlFor="fn" className="text-xs">
             Nom du dossier
           </Label>
           <Input id="fn" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+        </div>
+        <div>
+          <Label className="text-xs">Accès limité aux rôles</Label>
+          <p className="mb-2 text-[11px] text-muted-foreground">
+            Laissez tout décoché pour autoriser tous les membres du projet. Les administrateurs voient
+            toujours tous les dossiers.
+          </p>
+          <div className="space-y-2">
+            {(Object.keys(ROLE_LABELS) as AppRole[])
+              .filter((r) => r !== "admin")
+              .map((r) => (
+                <label key={r} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={allowed.includes(r)} onCheckedChange={() => toggle(r)} />
+                  {ROLE_LABELS[r]}
+                </label>
+              ))}
+          </div>
         </div>
         <DialogFooter>
           <Button type="submit" disabled={pending} className="bg-accent hover:bg-accent/90 text-accent-foreground">
