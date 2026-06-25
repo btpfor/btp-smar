@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { UserMenu } from "@/components/UserMenu";
+import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -27,7 +28,10 @@ function AuthenticatedLayout() {
                 Well Done Services — Plateforme BTP
               </span>
             </div>
-            <UserMenu />
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <UserMenu />
+            </div>
           </header>
           <main className="flex-1 p-6">
             <Outlet />
