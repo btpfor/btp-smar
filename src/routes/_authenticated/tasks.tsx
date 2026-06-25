@@ -1,9 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Calendar, Flag, User as UserIcon } from "lucide-react";
+import { Plus, Calendar, Flag, User as UserIcon, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -30,6 +42,19 @@ import {
 
 type Priority = "basse" | "normale" | "haute" | "urgente";
 type Status = "a_faire" | "en_cours" | "termine";
+
+type Task = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: Status;
+  priority: Priority;
+  assigned_to: string | null;
+  created_by: string | null;
+  project_id: string | null;
+  due_date: string | null;
+  created_at: string;
+};
 
 const PRIORITY_LABELS: Record<Priority, string> = {
   basse: "Basse",
@@ -61,6 +86,7 @@ function TasksPage() {
   const { canManageProjects, isAdmin } = useRoles();
   const canManage = canManageProjects || isAdmin;
   const [open, setOpen] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks"],
@@ -70,7 +96,7 @@ function TasksPage() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as Task[];
     },
   });
 
@@ -99,8 +125,19 @@ function TasksPage() {
       const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tasks"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onMutate: async ({ id, status }) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData<Task[]>(["tasks"]);
+      qc.setQueryData<Task[]>(["tasks"], (old) =>
+        (old ?? []).map((t) => (t.id === id ? { ...t, status } : t)),
+      );
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks"], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["tasks"] }),
   });
 
   const remove = useMutation({
@@ -114,12 +151,50 @@ function TasksPage() {
     },
   });
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const columns = useMemo(
+    () =>
+      STATUSES.reduce(
+        (acc, s) => {
+          acc[s] = tasks.filter((t) => t.status === s);
+          return acc;
+        },
+        {} as Record<Status, Task[]>,
+      ),
+    [tasks],
+  );
+
+  const activeTask = activeId ? tasks.find((t) => t.id === activeId) ?? null : null;
+
+  const canMove = (t: Task) => canManage || t.assigned_to === user?.id;
+
+  const handleDragStart = (e: DragStartEvent) => setActiveId(String(e.active.id));
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveId(null);
+    const taskId = String(e.active.id);
+    const overId = e.over?.id ? String(e.over.id) : null;
+    if (!overId) return;
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task || !canMove(task)) {
+      if (task && !canMove(task)) toast.error("Vous ne pouvez pas déplacer cette tâche");
+      return;
+    }
+    const newStatus = (STATUSES as string[]).includes(overId)
+      ? (overId as Status)
+      : tasks.find((t) => t.id === overId)?.status;
+    if (!newStatus || newStatus === task.status) return;
+    updateStatus.mutate({ id: taskId, status: newStatus });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Tâches</h1>
-          <p className="text-sm text-muted-foreground">Suivi des actions sur vos chantiers</p>
+          <p className="text-sm text-muted-foreground">
+            Glissez-déposez une carte pour changer son statut
+          </p>
         </div>
         {canManage && (
           <Dialog open={open} onOpenChange={setOpen}>
@@ -140,83 +215,175 @@ function TasksPage() {
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
-      ) : tasks.length === 0 ? (
-        <Card className="p-12 text-center text-sm text-muted-foreground">Aucune tâche.</Card>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-3">
-          {STATUSES.map((s) => {
-            const col = tasks.filter((t) => t.status === s);
-            return (
-              <div key={s} className="rounded-lg border bg-muted/30 p-3">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">{STATUS_LABELS[s]}</h3>
-                  <Badge variant="secondary">{col.length}</Badge>
-                </div>
-                <div className="space-y-2">
-                  {col.map((t) => {
-                    const canEdit = canManage || t.assigned_to === user?.id;
-                    return (
-                      <Card key={t.id} className="p-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium">{t.title}</p>
-                          <Badge className={PRIORITY_COLORS[t.priority as Priority]}>
-                            <Flag className="mr-1 h-3 w-3" />
-                            {PRIORITY_LABELS[t.priority as Priority]}
-                          </Badge>
-                        </div>
-                        {t.description && (
-                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{t.description}</p>
-                        )}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <UserIcon className="h-3 w-3" /> {userName(t.assigned_to)}
-                          </span>
-                          {t.due_date && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(t.due_date).toLocaleDateString("fr-FR")}
-                            </span>
-                          )}
-                        </div>
-                        {canEdit && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <Select
-                              value={t.status}
-                              onValueChange={(v) => updateStatus.mutate({ id: t.id, status: v as Status })}
-                            >
-                              <SelectTrigger className="h-7 text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {STATUSES.map((x) => (
-                                  <SelectItem key={x} value={x}>
-                                    {STATUS_LABELS[x]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {canManage && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive"
-                                onClick={() => confirm("Supprimer cette tâche ?") && remove.mutate(t.id)}
-                              >
-                                Suppr.
-                              </Button>
-                            )}
-                          </div>
-                        )}
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {STATUSES.map((s) => (
+              <Column
+                key={s}
+                status={s}
+                tasks={columns[s]}
+                userName={userName}
+                canManage={canManage}
+                canMove={canMove}
+                onDelete={(id) => confirm("Supprimer cette tâche ?") && remove.mutate(id)}
+              />
+            ))}
+          </div>
+          <DragOverlay>
+            {activeTask ? <TaskCardView task={activeTask} userName={userName} dragging /> : null}
+          </DragOverlay>
+        </DndContext>
       )}
     </div>
+  );
+}
+
+function Column({
+  status,
+  tasks,
+  userName,
+  canManage,
+  canMove,
+  onDelete,
+}: {
+  status: Status;
+  tasks: Task[];
+  userName: (id: string | null) => string;
+  canManage: boolean;
+  canMove: (t: Task) => boolean;
+  onDelete: (id: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`rounded-lg border bg-muted/30 p-3 transition-colors ${isOver ? "border-accent bg-accent/5" : ""}`}
+    >
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-semibold">{STATUS_LABELS[status]}</h3>
+        <Badge variant="secondary">{tasks.length}</Badge>
+      </div>
+      <div className="space-y-2 min-h-24">
+        {tasks.length === 0 ? (
+          <p className="rounded border border-dashed py-6 text-center text-xs text-muted-foreground">
+            Déposez ici
+          </p>
+        ) : (
+          tasks.map((t) => (
+            <DraggableTask
+              key={t.id}
+              task={t}
+              userName={userName}
+              draggable={canMove(t)}
+              canManage={canManage}
+              onDelete={() => onDelete(t.id)}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DraggableTask({
+  task,
+  userName,
+  draggable,
+  canManage,
+  onDelete,
+}: {
+  task: Task;
+  userName: (id: string | null) => string;
+  draggable: boolean;
+  canManage: boolean;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    disabled: !draggable,
+  });
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.4 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style}>
+      <TaskCardView
+        task={task}
+        userName={userName}
+        handleProps={draggable ? { ...attributes, ...listeners } : undefined}
+        canManage={canManage}
+        onDelete={onDelete}
+      />
+    </div>
+  );
+}
+
+function TaskCardView({
+  task,
+  userName,
+  handleProps,
+  canManage,
+  onDelete,
+  dragging,
+}: {
+  task: Task;
+  userName: (id: string | null) => string;
+  handleProps?: React.HTMLAttributes<HTMLButtonElement>;
+  canManage?: boolean;
+  onDelete?: () => void;
+  dragging?: boolean;
+}) {
+  return (
+    <Card className={`p-3 ${dragging ? "shadow-lg ring-2 ring-accent" : ""}`}>
+      <div className="flex items-start gap-2">
+        {handleProps && (
+          <button
+            {...handleProps}
+            className="mt-0.5 cursor-grab touch-none text-muted-foreground hover:text-foreground"
+            aria-label="Déplacer"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium">{task.title}</p>
+            <Badge className={PRIORITY_COLORS[task.priority]}>
+              <Flag className="mr-1 h-3 w-3" />
+              {PRIORITY_LABELS[task.priority]}
+            </Badge>
+          </div>
+          {task.description && (
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{task.description}</p>
+          )}
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <UserIcon className="h-3 w-3" /> {userName(task.assigned_to)}
+            </span>
+            {task.due_date && (
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {new Date(task.due_date).toLocaleDateString("fr-FR")}
+              </span>
+            )}
+          </div>
+          {canManage && onDelete && (
+            <div className="mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs text-destructive"
+                onClick={onDelete}
+              >
+                Supprimer
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
   );
 }
 
