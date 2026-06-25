@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       files: {
         Row: {
+          allowed_roles: Database["public"]["Enums"]["app_role"][] | null
           created_at: string
           folder_id: string | null
           id: string
@@ -27,6 +28,7 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          allowed_roles?: Database["public"]["Enums"]["app_role"][] | null
           created_at?: string
           folder_id?: string | null
           id?: string
@@ -38,6 +40,7 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          allowed_roles?: Database["public"]["Enums"]["app_role"][] | null
           created_at?: string
           folder_id?: string | null
           id?: string
@@ -67,6 +70,7 @@ export type Database = {
       }
       folders: {
         Row: {
+          allowed_roles: Database["public"]["Enums"]["app_role"][] | null
           created_at: string
           created_by: string | null
           id: string
@@ -76,6 +80,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_roles?: Database["public"]["Enums"]["app_role"][] | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -85,6 +90,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_roles?: Database["public"]["Enums"]["app_role"][] | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -332,6 +338,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_folder: {
+        Args: { _folder_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -353,6 +363,13 @@ export type Database = {
           _type: Database["public"]["Enums"]["notification_type"]
         }
         Returns: undefined
+      }
+      user_has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
