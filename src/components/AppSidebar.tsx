@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FolderKanban, Users, HardHat } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, HardHat, FolderOpen, ListTodo } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,8 @@ export function AppSidebar() {
   const items = [
     { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard },
     { title: "Projets", url: "/projects", icon: FolderKanban },
+    { title: "Documents", url: "/documents", icon: FolderOpen },
+    { title: "Tâches", url: "/tasks", icon: ListTodo },
   ];
   if (isAdmin) items.push({ title: "Utilisateurs", url: "/users", icon: Users });
 
