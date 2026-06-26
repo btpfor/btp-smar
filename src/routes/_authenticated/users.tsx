@@ -102,10 +102,14 @@ function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Utilisateurs</h1>
-        <p className="text-sm text-muted-foreground">Attribuez les rôles à chaque utilisateur</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Utilisateurs</h1>
+          <p className="text-sm text-muted-foreground">Créez les comptes et attribuez les rôles</p>
+        </div>
+        <CreateUserDialog />
       </div>
+
 
       <Card>
         <CardHeader>
