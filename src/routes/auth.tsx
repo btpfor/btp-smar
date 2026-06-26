@@ -102,16 +102,16 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="flex items-center justify-center p-6">
-
-        <div className="w-full max-w-md">
-          <div className="mb-6 flex flex-col items-center gap-2 lg:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <HardHat className="h-6 w-6" />
-            </div>
-            <h1 className="text-xl font-bold text-primary">Well Done Services</h1>
+    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4 sm:p-6">
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex flex-col items-center gap-2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <HardHat className="h-6 w-6" />
           </div>
+          <h1 className="text-xl font-bold text-primary">Well Done Services</h1>
+          <p className="text-xs text-muted-foreground">Plateforme BTP collaborative</p>
+        </div>
+
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
             <TabsList className="grid w-full grid-cols-3">
@@ -182,8 +182,8 @@ function AuthPage() {
           </Tabs>
         </div>
       </div>
-    </div>
   );
+
 }
 
 function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {

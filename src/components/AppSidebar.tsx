@@ -18,15 +18,17 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const { isAdmin } = useRoles();
+  const { isAdmin, hasRole } = useRoles();
+  const isClient = hasRole("client");
 
   const items = [
     { title: "Tableau de bord", url: "/dashboard", icon: LayoutDashboard },
     { title: "Projets", url: "/projects", icon: FolderKanban },
     { title: "Documents", url: "/documents", icon: FolderOpen },
-    { title: "Tâches", url: "/tasks", icon: ListTodo },
   ];
+  if (!isClient) items.push({ title: "Tâches", url: "/tasks", icon: ListTodo });
   if (isAdmin) items.push({ title: "Utilisateurs", url: "/users", icon: Users });
+
 
   const isActive = (p: string) =>
     p === "/dashboard" ? currentPath === p : currentPath.startsWith(p);
