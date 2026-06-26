@@ -182,8 +182,8 @@ function AuthPage() {
           </Tabs>
         </div>
       </div>
-    </div>
   );
+
 }
 
 function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
