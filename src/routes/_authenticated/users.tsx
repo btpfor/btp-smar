@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, UserPlus, Loader2 } from "lucide-react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +15,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, type AppRole } from "@/lib/roles";
+import { adminCreateUser } from "@/lib/admin-users.functions";
 
 export const Route = createFileRoute("/_authenticated/users")({
   head: () => ({ meta: [{ title: "Utilisateurs — Well Done Services" }] }),
   component: UsersPage,
 });
+
 
 type ProfileRow = {
   id: string;
