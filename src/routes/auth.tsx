@@ -102,37 +102,9 @@ function AuthPage() {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Brand panel */}
-      <div
-        className="relative hidden flex-col justify-between p-12 text-primary-foreground lg:flex"
-        style={{ background: "var(--gradient-primary)" }}
-      >
-        <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white/15">
-            <HardHat className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-sm font-bold">Well Done Services</div>
-            <div className="text-xs text-white/70">Company SARL</div>
-          </div>
-        </Link>
-        <div>
-          <h2 className="text-4xl font-bold leading-tight">
-            La plateforme collaborative
-            <span className="block text-accent">de vos chantiers BTP.</span>
-          </h2>
-          <p className="mt-4 max-w-md text-white/80">
-            Centralisez vos projets, partagez vos documents et suivez vos équipes en temps réel.
-          </p>
-        </div>
-        <div className="text-xs text-white/60">
-          © {new Date().getFullYear()} Well Done Services Company SARL
-        </div>
-      </div>
-
-      {/* Form panel */}
+    <div className="flex min-h-screen items-center justify-center p-6">
       <div className="flex items-center justify-center p-6">
+
         <div className="w-full max-w-md">
           <div className="mb-6 flex flex-col items-center gap-2 lg:hidden">
             <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
