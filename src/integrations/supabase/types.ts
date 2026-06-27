@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          type: Database["public"]["Enums"]["activity_type"]
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          type: Database["public"]["Enums"]["activity_type"]
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          type?: Database["public"]["Enums"]["activity_type"]
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: Database["public"]["Enums"]["audit_action"]
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["audit_action"]
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["audit_action"]
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       files: {
         Row: {
           allowed_roles: Database["public"]["Enums"]["app_role"][] | null
@@ -153,27 +219,36 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          created_by: string | null
           email: string
           full_name: string | null
           id: string
+          is_active: boolean
+          last_sign_in_at: string | null
           phone: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          created_by?: string | null
           email: string
           full_name?: string | null
           id: string
+          is_active?: boolean
+          last_sign_in_at?: string | null
           phone?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean
+          last_sign_in_at?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -338,6 +413,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_count: { Args: never; Returns: number }
       can_access_folder: {
         Args: { _folder_id: string; _user_id: string }
         Returns: boolean
@@ -373,7 +449,15 @@ export type Database = {
       }
     }
     Enums: {
+      activity_type:
+        | "sign_in"
+        | "sign_out"
+        | "sign_in_failed"
+        | "password_reset"
+        | "account_disabled"
+        | "account_enabled"
       app_role: "admin" | "chef_projet" | "ingenieur" | "client"
+      audit_action: "insert" | "update" | "delete"
       notification_type: "document" | "tache" | "projet" | "rapport"
       project_status: "en_preparation" | "en_cours" | "suspendu" | "termine"
       task_priority: "basse" | "normale" | "haute" | "urgente"
@@ -505,7 +589,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_type: [
+        "sign_in",
+        "sign_out",
+        "sign_in_failed",
+        "password_reset",
+        "account_disabled",
+        "account_enabled",
+      ],
       app_role: ["admin", "chef_projet", "ingenieur", "client"],
+      audit_action: ["insert", "update", "delete"],
       notification_type: ["document", "tache", "projet", "rapport"],
       project_status: ["en_preparation", "en_cours", "suspendu", "termine"],
       task_priority: ["basse", "normale", "haute", "urgente"],
