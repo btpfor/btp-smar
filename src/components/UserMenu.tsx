@@ -1,10 +1,12 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/use-auth";
 import { ROLE_LABELS } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
+import { logSignOut } from "@/lib/activity.functions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,8 +21,10 @@ export function UserMenu() {
   const { roles } = useRoles();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const logOut = useServerFn(logSignOut);
 
   const signOut = async () => {
+    if (user) await logOut({ data: { user_id: user.id } }).catch(() => {});
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
