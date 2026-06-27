@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { toast } from "sonner";
 import { HardHat, Loader2 } from "lucide-react";
@@ -7,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { bootstrapAdmin } from "@/lib/admin-bootstrap.functions";
+import { logSignInAttempt } from "@/lib/activity.functions";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Connexion — Well Done Services" }] }),
@@ -21,12 +24,16 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const bootstrap = useServerFn(bootstrapAdmin);
+  const logAttempt = useServerFn(logSignInAttempt);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/dashboard" });
     });
-  }, [navigate]);
+    // Idempotent bootstrap of the initial admin account
+    bootstrap().catch(() => {});
+  }, [navigate, bootstrap]);
 
   const onSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,12 +42,18 @@ function AuthPage() {
     if (!em.success) return toast.error(em.error.issues[0].message);
     if (!pw.success) return toast.error(pw.error.issues[0].message);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: em.data,
       password: pw.data,
     });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      logAttempt({ data: { email: em.data, success: false } }).catch(() => {});
+      return toast.error(error.message);
+    }
+    if (data.user) {
+      logAttempt({ data: { email: em.data, success: true, user_id: data.user.id } }).catch(() => {});
+    }
     toast.success("Connexion réussie");
     navigate({ to: "/dashboard" });
   };
