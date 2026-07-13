@@ -65,7 +65,7 @@ function AuthPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <HardHat className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-bold text-primary">Well Done Services</h1>
+          <h1 className="text-xl font-bold text-primary">GECO</h1>
           <p className="text-xs text-muted-foreground">Plateforme BTP collaborative</p>
         </div>
 
