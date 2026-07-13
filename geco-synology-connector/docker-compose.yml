@@ -1,0 +1,29 @@
+services:
+  geco-synology-connector:
+    build: .
+    image: geco/synology-connector:1.0.0
+    container_name: geco-synology-connector
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Exposer uniquement en interne LAN, jamais directement sur Internet
+      - "8080:8080"
+    volumes:
+      # Dossier racine GECO du NAS — SEUL dossier accessible au connecteur
+      - /volume1/GECO:/data/geco
+      # Base SQLite technique (nonces, file d'attente, corbeille meta)
+      - /volume1/docker/geco-connector/data:/app/data
+      # Logs JSON structurés (rotation gérée par le connecteur)
+      - /volume1/docker/geco-connector/logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/v1/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
