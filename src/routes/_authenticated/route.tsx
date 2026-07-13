@@ -25,7 +25,7 @@ function AuthenticatedLayout() {
             <div className="flex items-center gap-2">
               <SidebarTrigger />
               <span className="text-sm font-medium text-muted-foreground">
-                Well Done Services — Plateforme BTP
+                GECO
               </span>
             </div>
             <div className="flex items-center gap-1">
