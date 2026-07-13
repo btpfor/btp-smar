@@ -35,15 +35,14 @@ export const getSynologyStatus = createServerFn({ method: "GET" }).handler(async
     if (!healthRes.ok) {
       return { configured: true, online: false, message: `HTTP ${healthRes.status}` };
     }
-    const health = (await healthRes.json()) as Record<string, unknown>;
+    const health = JSON.parse(await healthRes.text()) as JsonValue;
 
-    // Storage status is signed
-    let storage: Record<string, unknown> | null = null;
+    let storage: JsonValue = null;
     try {
       const path = "/api/v1/storage/status";
       const headers = buildHeaders("GET", path, "");
       const sres = await fetch(new URL(path, url), { headers });
-      if (sres.ok) storage = (await sres.json()) as Record<string, unknown>;
+      if (sres.ok) storage = JSON.parse(await sres.text()) as JsonValue;
     } catch { /* ignore */ }
 
     return {
@@ -61,3 +60,5 @@ export const getSynologyStatus = createServerFn({ method: "GET" }).handler(async
     };
   }
 });
+
+type JsonValue = string | number | boolean | null | { [k: string]: JsonValue } | JsonValue[];
