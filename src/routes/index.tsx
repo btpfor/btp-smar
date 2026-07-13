@@ -27,8 +27,7 @@ function Landing() {
               <HardHat className="h-5 w-5" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-primary">Well Done Services</div>
-              <div className="text-xs text-muted-foreground">Company SARL</div>
+              <div className="text-sm font-bold text-primary">GECO</div>
             </div>
           </div>
           <div className="flex gap-2">
