@@ -35,15 +35,15 @@ export const getSynologyStatus = createServerFn({ method: "GET" }).handler(async
     if (!healthRes.ok) {
       return { configured: true, online: false, message: `HTTP ${healthRes.status}` };
     }
-    const health = await healthRes.json();
+    const health = (await healthRes.json()) as Record<string, unknown>;
 
     // Storage status is signed
-    let storage: unknown = null;
+    let storage: Record<string, unknown> | null = null;
     try {
       const path = "/api/v1/storage/status";
       const headers = buildHeaders("GET", path, "");
       const sres = await fetch(new URL(path, url), { headers });
-      if (sres.ok) storage = await sres.json();
+      if (sres.ok) storage = (await sres.json()) as Record<string, unknown>;
     } catch { /* ignore */ }
 
     return {
