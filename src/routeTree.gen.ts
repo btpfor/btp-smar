@@ -22,6 +22,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as ApiPublicGatewayJobsRouteImport } from './routes/api/public/gateway/jobs'
+import { Route as ApiPublicGatewayHeartbeatRouteImport } from './routes/api/public/gateway/heartbeat'
+import { Route as ApiPublicGatewayJobsIdStartRouteImport } from './routes/api/public/gateway/jobs.$id.start'
+import { Route as ApiPublicGatewayJobsIdFailRouteImport } from './routes/api/public/gateway/jobs.$id.fail'
+import { Route as ApiPublicGatewayJobsIdCompleteRouteImport } from './routes/api/public/gateway/jobs.$id.complete'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -88,6 +93,35 @@ const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedProjectsRoute,
 } as any)
+const ApiPublicGatewayJobsRoute = ApiPublicGatewayJobsRouteImport.update({
+  id: '/api/public/gateway/jobs',
+  path: '/api/public/gateway/jobs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicGatewayHeartbeatRoute =
+  ApiPublicGatewayHeartbeatRouteImport.update({
+    id: '/api/public/gateway/heartbeat',
+    path: '/api/public/gateway/heartbeat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGatewayJobsIdStartRoute =
+  ApiPublicGatewayJobsIdStartRouteImport.update({
+    id: '/$id/start',
+    path: '/$id/start',
+    getParentRoute: () => ApiPublicGatewayJobsRoute,
+  } as any)
+const ApiPublicGatewayJobsIdFailRoute =
+  ApiPublicGatewayJobsIdFailRouteImport.update({
+    id: '/$id/fail',
+    path: '/$id/fail',
+    getParentRoute: () => ApiPublicGatewayJobsRoute,
+  } as any)
+const ApiPublicGatewayJobsIdCompleteRoute =
+  ApiPublicGatewayJobsIdCompleteRouteImport.update({
+    id: '/$id/complete',
+    path: '/$id/complete',
+    getParentRoute: () => ApiPublicGatewayJobsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +136,11 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
+  '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
+  '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
+  '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -115,6 +154,11 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
+  '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
+  '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
+  '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -131,6 +175,11 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
+  '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
+  '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
+  '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +196,11 @@ export interface FileRouteTypes {
     | '/users'
     | '/projects/$id'
     | '/projects/'
+    | '/api/public/gateway/heartbeat'
+    | '/api/public/gateway/jobs'
+    | '/api/public/gateway/jobs/$id/complete'
+    | '/api/public/gateway/jobs/$id/fail'
+    | '/api/public/gateway/jobs/$id/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,6 +214,11 @@ export interface FileRouteTypes {
     | '/users'
     | '/projects/$id'
     | '/projects'
+    | '/api/public/gateway/heartbeat'
+    | '/api/public/gateway/jobs'
+    | '/api/public/gateway/jobs/$id/complete'
+    | '/api/public/gateway/jobs/$id/fail'
+    | '/api/public/gateway/jobs/$id/start'
   id:
     | '__root__'
     | '/'
@@ -175,6 +234,11 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/projects/$id'
     | '/_authenticated/projects/'
+    | '/api/public/gateway/heartbeat'
+    | '/api/public/gateway/jobs'
+    | '/api/public/gateway/jobs/$id/complete'
+    | '/api/public/gateway/jobs/$id/fail'
+    | '/api/public/gateway/jobs/$id/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -182,6 +246,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicGatewayHeartbeatRoute: typeof ApiPublicGatewayHeartbeatRoute
+  ApiPublicGatewayJobsRoute: typeof ApiPublicGatewayJobsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -277,6 +343,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
       parentRoute: typeof AuthenticatedProjectsRoute
     }
+    '/api/public/gateway/jobs': {
+      id: '/api/public/gateway/jobs'
+      path: '/api/public/gateway/jobs'
+      fullPath: '/api/public/gateway/jobs'
+      preLoaderRoute: typeof ApiPublicGatewayJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gateway/heartbeat': {
+      id: '/api/public/gateway/heartbeat'
+      path: '/api/public/gateway/heartbeat'
+      fullPath: '/api/public/gateway/heartbeat'
+      preLoaderRoute: typeof ApiPublicGatewayHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gateway/jobs/$id/start': {
+      id: '/api/public/gateway/jobs/$id/start'
+      path: '/$id/start'
+      fullPath: '/api/public/gateway/jobs/$id/start'
+      preLoaderRoute: typeof ApiPublicGatewayJobsIdStartRouteImport
+      parentRoute: typeof ApiPublicGatewayJobsRoute
+    }
+    '/api/public/gateway/jobs/$id/fail': {
+      id: '/api/public/gateway/jobs/$id/fail'
+      path: '/$id/fail'
+      fullPath: '/api/public/gateway/jobs/$id/fail'
+      preLoaderRoute: typeof ApiPublicGatewayJobsIdFailRouteImport
+      parentRoute: typeof ApiPublicGatewayJobsRoute
+    }
+    '/api/public/gateway/jobs/$id/complete': {
+      id: '/api/public/gateway/jobs/$id/complete'
+      path: '/$id/complete'
+      fullPath: '/api/public/gateway/jobs/$id/complete'
+      preLoaderRoute: typeof ApiPublicGatewayJobsIdCompleteRouteImport
+      parentRoute: typeof ApiPublicGatewayJobsRoute
+    }
   }
 }
 
@@ -318,11 +419,28 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiPublicGatewayJobsRouteChildren {
+  ApiPublicGatewayJobsIdCompleteRoute: typeof ApiPublicGatewayJobsIdCompleteRoute
+  ApiPublicGatewayJobsIdFailRoute: typeof ApiPublicGatewayJobsIdFailRoute
+  ApiPublicGatewayJobsIdStartRoute: typeof ApiPublicGatewayJobsIdStartRoute
+}
+
+const ApiPublicGatewayJobsRouteChildren: ApiPublicGatewayJobsRouteChildren = {
+  ApiPublicGatewayJobsIdCompleteRoute: ApiPublicGatewayJobsIdCompleteRoute,
+  ApiPublicGatewayJobsIdFailRoute: ApiPublicGatewayJobsIdFailRoute,
+  ApiPublicGatewayJobsIdStartRoute: ApiPublicGatewayJobsIdStartRoute,
+}
+
+const ApiPublicGatewayJobsRouteWithChildren =
+  ApiPublicGatewayJobsRoute._addFileChildren(ApiPublicGatewayJobsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicGatewayHeartbeatRoute: ApiPublicGatewayHeartbeatRoute,
+  ApiPublicGatewayJobsRoute: ApiPublicGatewayJobsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

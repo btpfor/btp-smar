@@ -12,8 +12,6 @@ export const Route = createFileRoute("/api/public/gateway/jobs/$id/fail")({
           status?: "FAILED" | "CONFLICT";
         };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin.rpc as unknown;
-        // Simple update with attempts increment
         const { error: upErr } = await supabaseAdmin
           .from("sync_jobs")
           .update({
@@ -22,7 +20,6 @@ export const Route = createFileRoute("/api/public/gateway/jobs/$id/fail")({
             completed_at: new Date().toISOString(),
           })
           .eq("id", params.id);
-        void error;
         if (upErr) return jsonError(500, upErr.message);
         return Response.json({ ok: true });
       },
