@@ -1,7 +1,7 @@
 import Fastify from "fastify";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
-import { env, VERSION } from "../src/config/env.js";
+import { env, VERSION } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 import { startSync, sendHeartbeatNow, state, pollOnce } from "./services/sync.service.js";
 import { startWatcher } from "./services/watcher.service.js";
