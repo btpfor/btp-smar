@@ -77,19 +77,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Plateforme  BTP" },
+      { title: "Plateforme collaborative BTP" },
       {
         name: "description",
         content:
           "Centralisez vos projets BTP, équipes et documents. Conçue pour les conducteurs de travaux, ingénieurs et chefs de projet.",
       },
-      { property: "og:title", content: "Plateforme  BTP" },
+      { property: "og:title", content: "Plateforme collaborative BTP" },
       {
         property: "og:description",
         content: "Centralisez vos projets BTP, équipes et documents. Conçue pour les conducteurs de travaux, ingénieurs et chefs de projet.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:title", content: "Plateforme  BTP" },
+      { name: "twitter:title", content: "Plateforme collaborative BTP" },
       { name: "description", content: "Centralisez vos projets BTP, équipes et documents. Conçue pour les conducteurs de travaux, ingénieurs et chefs de projet." },
       { property: "og:description", content: "Centralisez vos projets BTP, équipes et documents. Conçue pour les conducteurs de travaux, ingénieurs et chefs de projet." },
       { name: "twitter:description", content: "Centralisez vos projets BTP, équipes et documents. Conçue pour les conducteurs de travaux, ingénieurs et chefs de projet." },
@@ -97,7 +97,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ae20a5c2-7e5e-4f56-82a7-fd3369e30bc6/id-preview-0823b346--b6ae5691-5641-404c-804d-aa9150c46e9e.lovable.app-1782407329040.png" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [{ rel: "stylesheet", href: appCss }, { rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
