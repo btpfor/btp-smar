@@ -182,6 +182,57 @@ export type Database = {
           },
         ]
       }
+      gateway_heartbeats: {
+        Row: {
+          available_bytes: number | null
+          connector_id: string
+          failed_jobs: number
+          gateway_version: string | null
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          nas_host: string | null
+          nas_reachable: boolean
+          pending_jobs: number
+          smb_connected: boolean
+          total_bytes: number | null
+          updated_at: string
+          used_bytes: number | null
+        }
+        Insert: {
+          available_bytes?: number | null
+          connector_id: string
+          failed_jobs?: number
+          gateway_version?: string | null
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          nas_host?: string | null
+          nas_reachable?: boolean
+          pending_jobs?: number
+          smb_connected?: boolean
+          total_bytes?: number | null
+          updated_at?: string
+          used_bytes?: number | null
+        }
+        Update: {
+          available_bytes?: number | null
+          connector_id?: string
+          failed_jobs?: number
+          gateway_version?: string | null
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          nas_host?: string | null
+          nas_reachable?: boolean
+          pending_jobs?: number
+          smb_connected?: boolean
+          total_bytes?: number | null
+          updated_at?: string
+          used_bytes?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -337,6 +388,60 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          connector_id: string
+          created_at: string
+          destination_path: string | null
+          file_id: string | null
+          id: string
+          last_error: string | null
+          operation: Database["public"]["Enums"]["sync_job_operation"]
+          payload: Json
+          project_id: string | null
+          result: Json | null
+          source_path: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["sync_job_status"]
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          connector_id: string
+          created_at?: string
+          destination_path?: string | null
+          file_id?: string | null
+          id?: string
+          last_error?: string | null
+          operation: Database["public"]["Enums"]["sync_job_operation"]
+          payload?: Json
+          project_id?: string | null
+          result?: Json | null
+          source_path?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["sync_job_status"]
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          connector_id?: string
+          created_at?: string
+          destination_path?: string | null
+          file_id?: string | null
+          id?: string
+          last_error?: string | null
+          operation?: Database["public"]["Enums"]["sync_job_operation"]
+          payload?: Json
+          project_id?: string | null
+          result?: Json | null
+          source_path?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["sync_job_status"]
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null
@@ -460,6 +565,24 @@ export type Database = {
       audit_action: "insert" | "update" | "delete"
       notification_type: "document" | "tache" | "projet" | "rapport"
       project_status: "en_preparation" | "en_cours" | "suspendu" | "termine"
+      sync_job_operation:
+        | "CREATE_FOLDER"
+        | "CREATE_PROJECT_STRUCTURE"
+        | "UPLOAD_FILE"
+        | "DOWNLOAD_FILE"
+        | "RENAME_FILE"
+        | "MOVE_FILE"
+        | "DELETE_FILE"
+        | "RESTORE_FILE"
+        | "CALCULATE_CHECKSUM"
+        | "SCAN_FOLDER"
+        | "SYNC_METADATA"
+      sync_job_status:
+        | "PENDING"
+        | "PROCESSING"
+        | "COMPLETED"
+        | "FAILED"
+        | "CONFLICT"
       task_priority: "basse" | "normale" | "haute" | "urgente"
       task_status: "a_faire" | "en_cours" | "termine"
     }
@@ -601,6 +724,26 @@ export const Constants = {
       audit_action: ["insert", "update", "delete"],
       notification_type: ["document", "tache", "projet", "rapport"],
       project_status: ["en_preparation", "en_cours", "suspendu", "termine"],
+      sync_job_operation: [
+        "CREATE_FOLDER",
+        "CREATE_PROJECT_STRUCTURE",
+        "UPLOAD_FILE",
+        "DOWNLOAD_FILE",
+        "RENAME_FILE",
+        "MOVE_FILE",
+        "DELETE_FILE",
+        "RESTORE_FILE",
+        "CALCULATE_CHECKSUM",
+        "SCAN_FOLDER",
+        "SYNC_METADATA",
+      ],
+      sync_job_status: [
+        "PENDING",
+        "PROCESSING",
+        "COMPLETED",
+        "FAILED",
+        "CONFLICT",
+      ],
       task_priority: ["basse", "normale", "haute", "urgente"],
       task_status: ["a_faire", "en_cours", "termine"],
     },
