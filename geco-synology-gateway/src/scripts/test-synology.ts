@@ -27,7 +27,8 @@ async function tcpProbe(host: string, port: number, timeoutMs = 5000): Promise<v
 
 async function main() {
   console.log(`→ Test Synology DS112 : ${env.SYNOLOGY_HOST} / partage \\\\${env.SYNOLOGY_HOST}\\${env.SYNOLOGY_SMB_SHARE}`);
-  console.log(`  Utilisateur SMB : ${env.SYNOLOGY_SMB_USERNAME} (mot de passe masqué)\n`);
+  const userLabel = env.SYNOLOGY_SMB_USERNAME ?? "(via Windows Credential Manager)";
+  console.log(`  Utilisateur SMB : ${userLabel} (mot de passe masqué)\n`);
 
   try {
     const addr = await lookup(env.SYNOLOGY_HOST);
