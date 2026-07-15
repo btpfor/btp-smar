@@ -26,7 +26,7 @@ import type {
   StorageAdapter,
   StorageHealth,
   StorageStat,
-} from "./storage-adapter.js";
+} from "./storage-adapter.interface.js";
 
 const UNC_ROOT = `\\\\${env.SYNOLOGY_HOST}\\${env.SYNOLOGY_SMB_SHARE}`;
 
@@ -45,7 +45,7 @@ function runNet(
   args: string[],
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    const child = spawn("net", args, { windowsHide: true });
+    const child = spawn("net", args, { shell: false, windowsHide: true });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (d) => (stdout += d.toString()));
@@ -186,16 +186,16 @@ async function withSession<T>(label: string, fn: () => Promise<T>): Promise<T> {
   );
 }
 
-export const windowsSmbAdapter: StorageAdapter = {
+export class WindowsSmbStorageAdapter implements StorageAdapter {
   async connect() {
     await ensureMounted();
-  },
+  }
 
   async disconnect() {
     if (process.platform !== "win32") return;
     await runNet(["use", UNC_ROOT, "/delete", "/y"]).catch(() => {});
     mounted = false;
-  },
+  }
 
   async healthCheck(): Promise<StorageHealth> {
     try {
@@ -205,16 +205,19 @@ export const windowsSmbAdapter: StorageAdapter = {
       return {
         nasAccessible: false,
         smbConnected: false,
+          shareAccessible: false,
         readAllowed: false,
         writeAllowed: false,
         message: msg,
       };
     }
+    let shareAccessible = false;
     let readAllowed = false;
     let writeAllowed = false;
     let message: string | undefined;
     try {
       await fs.readdir(absUnc(""));
+      shareAccessible = true;
       readAllowed = true;
     } catch (e) {
       message = scrub(e instanceof Error ? e.message : String(e));
@@ -233,19 +236,20 @@ export const windowsSmbAdapter: StorageAdapter = {
     return {
       nasAccessible: true,
       smbConnected: true,
+      shareAccessible,
       readAllowed,
       writeAllowed,
       message,
     };
-  },
+  }
 
   async list(rel) {
     return withSession("smb.list", () => fs.readdir(absUnc(rel)));
-  },
+  }
 
   async read(rel) {
     return withSession("smb.read", () => fs.readFile(absUnc(rel)));
-  },
+  }
 
   async write(rel, data) {
     return withSession("smb.write", async () => {
@@ -254,11 +258,11 @@ export const windowsSmbAdapter: StorageAdapter = {
       if (parent) await fs.mkdir(absUnc(parent), { recursive: true });
       await fs.writeFile(absUnc(rel), data);
     });
-  },
+  }
 
   async rename(from, to) {
     return withSession("smb.rename", () => fs.rename(absUnc(from), absUnc(to)));
-  },
+  }
 
   async move(from, to) {
     return withSession("smb.move", async () => {
@@ -267,11 +271,11 @@ export const windowsSmbAdapter: StorageAdapter = {
       if (parent) await fs.mkdir(absUnc(parent), { recursive: true });
       await fs.rename(absUnc(from), absUnc(to));
     });
-  },
+  }
 
   async delete(rel) {
     return withSession("smb.delete", () => fs.unlink(absUnc(rel)));
-  },
+  }
 
   async stat(rel): Promise<StorageStat | null> {
     return withSession("smb.stat", async () => {
@@ -282,19 +286,21 @@ export const windowsSmbAdapter: StorageAdapter = {
         return null;
       }
     });
-  },
+  }
 
   async ensureFolder(rel) {
     return withSession("smb.ensureFolder", async () => {
       await fs.mkdir(absUnc(rel), { recursive: true });
     });
-  },
+  }
 
   async getDiskSpace(): Promise<DiskSpace> {
     // fs.statfs ne supporte pas les chemins UNC de manière fiable sur Windows.
     return { totalBytes: null, usedBytes: null, availableBytes: null };
-  },
-};
+  }
+}
+
+export const windowsSmbAdapter: StorageAdapter = new WindowsSmbStorageAdapter();
 
 export function getStorageAdapter(): StorageAdapter {
   if (process.platform !== "win32") {
