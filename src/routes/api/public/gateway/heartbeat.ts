@@ -42,16 +42,18 @@ export const Route = createFileRoute("/api/public/gateway/heartbeat")({
           step = "VERIFY_HMAC_REQUEST";
           const auth = await verifyGatewayRequest(request);
           if (!auth.ok) {
-            logHeartbeat("warn", {
-              requestId,
-              gatewayId: auth.gatewayId ?? null,
-              timestamp: auth.timestamp ?? null,
-              hasNonce: auth.hasNonce ?? false,
-              signatureLength: auth.signatureLength ?? 0,
-              step: auth.step,
-              errorType: auth.error,
-              message: auth.error,
-            });
+            if (auth.error !== "GATEWAY_NOT_CONFIGURED") {
+              logHeartbeat("warn", {
+                requestId,
+                gatewayId: auth.gatewayId ?? null,
+                timestamp: auth.timestamp ?? null,
+                hasNonce: auth.hasNonce ?? false,
+                signatureLength: auth.signatureLength ?? 0,
+                step: auth.step,
+                errorType: auth.error,
+                message: auth.error,
+              });
+            }
             return jsonError(auth.status, auth.error, requestId);
           }
 

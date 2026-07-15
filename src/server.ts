@@ -7,6 +7,26 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+type WorkerRuntimeGlobals = typeof globalThis & {
+  __env__?: Record<string, unknown>;
+  __wait_until__?: (promise: Promise<unknown>) => void;
+};
+
+function bindWorkerRuntime(env: unknown, ctx: unknown): void {
+  const globals = globalThis as WorkerRuntimeGlobals;
+  if (env && typeof env === "object") {
+    globals.__env__ = env as Record<string, unknown>;
+  }
+
+  const waitUntil =
+    ctx && typeof ctx === "object" && "waitUntil" in ctx
+      ? (ctx as { waitUntil?: unknown }).waitUntil
+      : undefined;
+  if (typeof waitUntil === "function") {
+    globals.__wait_until__ = waitUntil.bind(ctx) as (promise: Promise<unknown>) => void;
+  }
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -40,6 +60,7 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      bindWorkerRuntime(env, ctx);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
