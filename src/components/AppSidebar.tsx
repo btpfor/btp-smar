@@ -30,6 +30,7 @@ export function AppSidebar() {
   if (isAdmin) items.push({ title: "Utilisateurs", url: "/users", icon: Users });
   if (isAdmin) items.push({ title: "Audit", url: "/audit", icon: ScrollText });
   if (isAdmin) items.push({ title: "Stockage & Synology", url: "/synology", icon: HardDrive });
+  items.push({ title: "Config Synology", url: "/synology-config", icon: Settings });
   if (isAdmin) items.push({ title: "Diagnostic Gateway", url: "/gateway-diagnostic", icon: Activity });
   if (isAdmin) items.push({ title: "Gateways", url: "/gateways", icon: Server });
 
