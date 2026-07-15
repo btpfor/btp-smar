@@ -13,7 +13,7 @@ const schema = z.object({
   POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
   HEARTBEAT_INTERVAL_MS: z.coerce.number().int().positive().default(30_000),
 
-  SYNOLOGY_HOST: z.string().min(1),
+  SYNOLOGY_HOST: z.string().min(1).default("192.168.1.21"),
   SYNOLOGY_SMB_SHARE: z.string().min(1).default("GECO"),
   SYNOLOGY_SMB_DOMAIN: z.string().default("WORKGROUP"),
   // Les identifiants SMB peuvent être stockés dans le Windows Credential
