@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ShieldAlert, Activity, FileEdit } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ShieldAlert, Activity, FileEdit, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { listDocumentAudit } from "@/lib/documents.functions";
 
 export const Route = createFileRoute("/_authenticated/audit")({
   head: () => ({ meta: [{ title: "Audit — Well Done Services" }] }),
@@ -54,12 +56,18 @@ function AuditPage() {
           <TabsTrigger value="changes">
             <FileEdit className="mr-2 h-4 w-4" /> Modifications
           </TabsTrigger>
+          <TabsTrigger value="documents">
+            <FileText className="mr-2 h-4 w-4" /> Documents GECO
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="activity" className="mt-4">
           <ActivityTab />
         </TabsContent>
         <TabsContent value="changes" className="mt-4">
           <ChangesTab />
+        </TabsContent>
+        <TabsContent value="documents" className="mt-4">
+          <DocumentsAuditTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -223,6 +231,73 @@ function ChangesTab() {
             {data.length === 0 && (
               <p className="py-6 text-center text-sm text-muted-foreground">Aucune modification.</p>
             )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+const DOC_ACTION_LABELS: Record<string, { label: string; tone: string }> = {
+  DOCUMENT_UPLOAD_REQUESTED: { label: "Upload demandé", tone: "bg-blue-500/15 text-blue-700 dark:text-blue-300" },
+  DOCUMENT_UPLOAD_CONFIRMED: { label: "Upload confirmé", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  DOCUMENT_STORED: { label: "Stocké NAS", tone: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" },
+  DOCUMENT_STORAGE_FAILED: { label: "Échec stockage", tone: "bg-destructive/15 text-destructive" },
+  DOCUMENT_DOWNLOAD_REQUESTED: { label: "Téléchargement", tone: "bg-muted text-muted-foreground" },
+  DOCUMENT_RENAMED: { label: "Renommé", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  DOCUMENT_MOVED: { label: "Déplacé", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
+  DOCUMENT_ARCHIVED: { label: "Archivé", tone: "bg-muted text-muted-foreground" },
+  DOCUMENT_DELETE_REQUESTED: { label: "Suppression", tone: "bg-destructive/15 text-destructive" },
+};
+
+function DocumentsAuditTab() {
+  const listFn = useServerFn(listDocumentAudit);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["document-audit"],
+    queryFn: () => listFn({ data: { limit: 200 } }),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{data.length} évènement(s) documents</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Chargement…</p>
+        ) : data.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">Aucun évènement.</p>
+        ) : (
+          <div className="divide-y">
+            {data.map((r) => {
+              const meta = DOC_ACTION_LABELS[r.action] ?? {
+                label: r.action,
+                tone: "bg-muted text-muted-foreground",
+              };
+              return (
+                <div
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <Badge className={meta.tone} variant="secondary">
+                      {meta.label}
+                    </Badge>
+                    {r.document_id && (
+                      <span className="font-mono text-xs text-muted-foreground">
+                        doc {r.document_id.slice(0, 8)}
+                      </span>
+                    )}
+                    {r.result && (
+                      <span className="text-xs text-muted-foreground">— {r.result}</span>
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(r.created_at).toLocaleString("fr-FR")}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </CardContent>
