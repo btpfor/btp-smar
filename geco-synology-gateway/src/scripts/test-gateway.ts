@@ -56,7 +56,7 @@ async function main() {
   if (res.statusCode === 401 || res.statusCode === 403) {
     let err = "";
     try { err = (JSON.parse(text) as { error?: string }).error ?? text; } catch { err = text; }
-    if (/UNKNOWN_GATEWAY_ID/i.test(err)) fail(`Gateway ID rejeté : ${err} (vérifiez GECO_GATEWAY_ID côté plateforme)`);
+    if (/INVALID_GATEWAY_ID|UNKNOWN_GATEWAY_ID/i.test(err)) fail(`Gateway ID rejeté : ${err} (vérifiez GECO_GATEWAY_ID côté plateforme)`);
     if (/INVALID_SIGNATURE/i.test(err)) fail(`Signature HMAC rejetée : ${err} (le GECO_GATEWAY_SECRET local ne correspond pas au secret configuré côté plateforme)`);
     if (/TIMESTAMP_EXPIRED/i.test(err)) fail(`Horodatage rejeté : ${err} (l'horloge de ce PC dérive de plus de 5 minutes)`);
     fail(`Heartbeat rejeté (HTTP ${res.statusCode}) : ${err}`);
