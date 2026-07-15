@@ -42,18 +42,36 @@ function bytes(n?: number | null) {
 
 function SynologyPage() {
   const { isAdmin } = useRoles();
+  const qc = useQueryClient();
   const statusFn = useServerFn(getGatewayStatus);
   const syncFn = useServerFn(runGatewaySync);
+  const statsFn = useServerFn(getStorageStats);
+  const retryFn = useServerFn(retryFailedFileJobs);
   const q = useQuery({
     queryKey: ["gateway-status"],
     queryFn: () => statusFn(),
     refetchInterval: 15_000,
   });
+  const stats = useQuery({
+    queryKey: ["storage-stats"],
+    queryFn: () => statsFn(),
+    refetchInterval: 20_000,
+    enabled: isAdmin,
+  });
   const sync = useMutation({ mutationFn: () => syncFn({ data: {} }) });
+  const retry = useMutation({
+    mutationFn: (jobId?: string) => retryFn({ data: jobId ? { jobId } : {} }),
+    onSuccess: (r) => {
+      toast.success(`${r.requeued} job(s) remis en file`);
+      qc.invalidateQueries({ queryKey: ["storage-stats"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   if (!isAdmin) {
     return <Card className="p-6 text-sm">Accès réservé aux administrateurs.</Card>;
   }
+
 
   const data = q.data;
   const online = data?.online === true;
