@@ -182,6 +182,54 @@ export type Database = {
           },
         ]
       }
+      gateway_alert_settings: {
+        Row: {
+          email_enabled: boolean
+          email_recipients: string[]
+          id: boolean
+          notify_frequency_minutes: number
+          offline_threshold_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          email_recipients?: string[]
+          id?: boolean
+          notify_frequency_minutes?: number
+          offline_threshold_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          email_enabled?: boolean
+          email_recipients?: string[]
+          id?: boolean
+          notify_frequency_minutes?: number
+          offline_threshold_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gateway_alert_state: {
+        Row: {
+          connector_id: string
+          is_offline: boolean
+          last_checked_at: string
+          last_notified_at: string | null
+        }
+        Insert: {
+          connector_id: string
+          is_offline?: boolean
+          last_checked_at?: string
+          last_notified_at?: string | null
+        }
+        Update: {
+          connector_id?: string
+          is_offline?: boolean
+          last_checked_at?: string
+          last_notified_at?: string | null
+        }
+        Relationships: []
+      }
       gateway_heartbeats: {
         Row: {
           available_bytes: number | null
@@ -581,7 +629,7 @@ export type Database = {
         | "account_enabled"
       app_role: "admin" | "chef_projet" | "ingenieur" | "client"
       audit_action: "insert" | "update" | "delete"
-      notification_type: "document" | "tache" | "projet" | "rapport"
+      notification_type: "document" | "tache" | "projet" | "rapport" | "systeme"
       project_status: "en_preparation" | "en_cours" | "suspendu" | "termine"
       sync_job_operation:
         | "CREATE_FOLDER"
@@ -741,7 +789,7 @@ export const Constants = {
       ],
       app_role: ["admin", "chef_projet", "ingenieur", "client"],
       audit_action: ["insert", "update", "delete"],
-      notification_type: ["document", "tache", "projet", "rapport"],
+      notification_type: ["document", "tache", "projet", "rapport", "systeme"],
       project_status: ["en_preparation", "en_cours", "suspendu", "termine"],
       sync_job_operation: [
         "CREATE_FOLDER",
