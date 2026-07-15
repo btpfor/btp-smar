@@ -103,12 +103,59 @@ Copy-Item .env.example .env
 | `GECO_API_URL` | `https://btp-smar.touba-ndiaw01.workers.dev` |
 | `SYNOLOGY_HOST` | IP ou nom LAN du DS112 (ex. `192.168.1.10`) |
 | `SYNOLOGY_SMB_SHARE` | `GECO` |
-| `SYNOLOGY_SMB_USERNAME` | `geco_connector` |
-| `SYNOLOGY_SMB_PASSWORD` | Mot de passe du compte SMB créé sur le DSM |
+| `SYNOLOGY_SMB_USERNAME` | `geco_connector` (**optionnel** si stocké dans Credential Manager, voir §6-bis) |
+| `SYNOLOGY_SMB_PASSWORD` | Mot de passe SMB (**optionnel** si stocké dans Credential Manager) |
+
+Optionnel, tolérance de reconnexion (valeurs par défaut sensées) :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `SMB_RECONNECT_MAX_RETRIES` | `6` | Nombre max de tentatives par opération SMB avant abandon |
+| `SMB_RECONNECT_MIN_DELAY_MS` | `500` | Délai initial du backoff exponentiel |
+| `SMB_RECONNECT_MAX_DELAY_MS` | `30000` | Plafond du délai entre deux tentatives |
 
 ⚠️ **Ne jamais** committer ce fichier `.env`. Le `.gitignore` l'exclut déjà.
 Le mot de passe SMB n'est **jamais** loggué : les scripts scrubbent toute occurrence
 avant affichage et ne l'envoient **jamais** à Cloudflare.
+
+## 6-bis. (Recommandé) Stocker les identifiants dans Windows Credential Manager
+
+Plutôt que de laisser `SYNOLOGY_SMB_PASSWORD` en clair dans `.env`, vous pouvez
+les stocker dans le coffre-fort natif de Windows (`cmdkey`) — le Gateway les
+récupère alors automatiquement au moment du montage UNC, sans qu'aucun mot de
+passe ne transite par Node.js ni par un fichier de configuration.
+
+```powershell
+# Écrit l'entrée cmdkey pour SYNOLOGY_HOST (ex. 192.168.1.10) :
+npm run credentials -- set geco_connector "MonMotDePasseSMB"
+
+# Vérifie qu'elle existe :
+npm run credentials -- status
+
+# Retire les deux lignes du .env :
+#   SYNOLOGY_SMB_USERNAME=...
+#   SYNOLOGY_SMB_PASSWORD=...
+
+# Pour supprimer plus tard :
+npm run credentials -- delete
+```
+
+L'entrée cmdkey est liée à la session utilisateur Windows sous laquelle tourne
+le Gateway — pensez à la recréer sous le compte du service (via `runas` ou
+directement depuis la session du compte de service NSSM) si vous utilisez
+l'installation en service Windows.
+
+## 6-ter. Reconnexion automatique
+
+Le Gateway rétablit automatiquement la session UNC (`net use`) lorsqu'elle
+tombe (NAS redémarré, câble déconnecté, session expirée). Chaque opération
+SMB (`read`, `write`, `list`, `stat`, …) est protégée par un backoff
+exponentiel avec jitter piloté par les variables `SMB_RECONNECT_*` ci-dessus.
+En cas d'erreur transitoire (`ECONNRESET`, « The specified network name is
+no longer available », `ETIMEDOUT`, …), le partage est démonté puis remonté
+avant la tentative suivante — aucune intervention manuelle n'est requise.
+
+
 
 ## 7. Vérifier l'environnement (`npm run doctor`)
 
@@ -221,6 +268,8 @@ nssm remove GECOGateway confirm
 | `npm run dev` | Démarre le Gateway en mode watch (tsx). |
 | `npm run build` | Compile TypeScript → `dist/`. |
 | `npm start` | Démarre le Gateway compilé (`dist/index.js`). |
+| `npm run doctor` | Vérifie l'environnement Windows (Node, OpenSSL, config, credentials). |
+| `npm run credentials -- set/status/delete` | Gère les identifiants SMB dans Windows Credential Manager. |
 | `npm run test:synology` | Test réel SMB : DNS, port 445, partage, R/W. |
 | `npm run test:gateway` | Test réel HMAC vers l'API GECO Cloudflare. |
 

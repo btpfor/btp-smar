@@ -16,8 +16,16 @@ const schema = z.object({
   SYNOLOGY_HOST: z.string().min(1),
   SYNOLOGY_SMB_SHARE: z.string().min(1).default("GECO"),
   SYNOLOGY_SMB_DOMAIN: z.string().default("WORKGROUP"),
-  SYNOLOGY_SMB_USERNAME: z.string().min(1),
-  SYNOLOGY_SMB_PASSWORD: z.string().min(1),
+  // Les identifiants SMB peuvent être stockés dans le Windows Credential
+  // Manager (via `npm run credentials -- set`). Dans ce cas ils sont absents
+  // de `.env` et le Gateway s'appuie sur l'entrée cmdkey de l'hôte.
+  SYNOLOGY_SMB_USERNAME: z.string().min(1).optional(),
+  SYNOLOGY_SMB_PASSWORD: z.string().min(1).optional(),
+
+  // Politique de reconnexion (mount UNC / net use).
+  SMB_RECONNECT_MAX_RETRIES: z.coerce.number().int().positive().default(6),
+  SMB_RECONNECT_MIN_DELAY_MS: z.coerce.number().int().positive().default(500),
+  SMB_RECONNECT_MAX_DELAY_MS: z.coerce.number().int().positive().default(30_000),
 
   GECO_STORAGE_ROOT: z.string().default(""),
 
