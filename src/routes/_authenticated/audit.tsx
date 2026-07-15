@@ -56,12 +56,18 @@ function AuditPage() {
           <TabsTrigger value="changes">
             <FileEdit className="mr-2 h-4 w-4" /> Modifications
           </TabsTrigger>
+          <TabsTrigger value="documents">
+            <FileText className="mr-2 h-4 w-4" /> Documents GECO
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="activity" className="mt-4">
           <ActivityTab />
         </TabsContent>
         <TabsContent value="changes" className="mt-4">
           <ChangesTab />
+        </TabsContent>
+        <TabsContent value="documents" className="mt-4">
+          <DocumentsAuditTab />
         </TabsContent>
       </Tabs>
     </div>
