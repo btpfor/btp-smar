@@ -140,7 +140,7 @@ function SynologyPage() {
 
         <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2 md:grid-cols-4">
           <Info label="Version Gateway" value={hb?.gateway_version ?? "—"} />
-          <Info label="Hôte NAS" value={hb?.nas_host ?? "—"} />
+          <Info label="Hôte NAS" value={hb?.nas_host ?? "192.168.1.21"} />
           <Info
             label="Dernière communication"
             value={hb ? new Date(hb.updated_at).toLocaleString("fr-FR") : "—"}
