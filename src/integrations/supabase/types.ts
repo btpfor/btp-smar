@@ -233,6 +233,24 @@ export type Database = {
         }
         Relationships: []
       }
+      gateway_request_nonces: {
+        Row: {
+          gateway_id: string
+          nonce: string
+          received_at: string
+        }
+        Insert: {
+          gateway_id: string
+          nonce: string
+          received_at?: string
+        }
+        Update: {
+          gateway_id?: string
+          nonce?: string
+          received_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
