@@ -59,7 +59,8 @@ function runNet(
 
 let mounted = false;
 let mountInFlight: Promise<void> | null = null;
-let credentialSource: "env" | "credential-manager" | "windows-session" = "windows-session";
+type CredentialSource = "env" | "credential-manager" | "windows-session";
+let credentialSource: CredentialSource = "windows-session";
 
 interface ResolvedCredentials {
   user?: string;
