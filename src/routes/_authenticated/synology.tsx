@@ -83,7 +83,7 @@ function SynologyPage() {
         <div>
           <h1 className="text-2xl font-bold">Stockage & Synology</h1>
           <p className="text-sm text-muted-foreground">
-            NAS : Synology DS112 — via GECO Synology Gateway
+            NAS : Synology DS112 (192.168.1.21) — via GECO Synology Gateway
           </p>
         </div>
         <div className="flex gap-2">
@@ -140,7 +140,7 @@ function SynologyPage() {
 
         <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2 md:grid-cols-4">
           <Info label="Version Gateway" value={hb?.gateway_version ?? "—"} />
-          <Info label="Hôte NAS" value={hb?.nas_host ?? "—"} />
+          <Info label="Hôte NAS" value={hb?.nas_host ?? "192.168.1.21"} />
           <Info
             label="Dernière communication"
             value={hb ? new Date(hb.updated_at).toLocaleString("fr-FR") : "—"}
