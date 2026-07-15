@@ -83,12 +83,12 @@ export const Route = createFileRoute("/api/public/gateway/heartbeat")({
 
           step = "CHECK_REPLAY_NONCE";
           await supabaseAdmin
-            .from("gateway_request_nonces" as never)
+            .from("gateway_request_nonces")
             .delete()
-            .lt("received_at" as never, new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() as never);
+            .lt("received_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
           const { error: nonceError } = await supabaseAdmin
-            .from("gateway_request_nonces" as never)
-            .insert({ nonce: auth.nonce, gateway_id: gatewayId } as never);
+            .from("gateway_request_nonces")
+            .insert({ nonce: auth.nonce, gateway_id: gatewayId });
           if (nonceError) {
             const isDuplicate = nonceError.code === "23505" || /duplicate|unique/i.test(nonceError.message);
             logHeartbeat("warn", {
