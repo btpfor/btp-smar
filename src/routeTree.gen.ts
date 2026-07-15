@@ -17,6 +17,7 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSynologyRouteImport } from './routes/_authenticated/synology'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedGatewayDiagnosticRouteImport } from './routes/_authenticated/gateway-diagnostic'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
@@ -67,6 +68,12 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGatewayDiagnosticRoute =
+  AuthenticatedGatewayDiagnosticRouteImport.update({
+    id: '/gateway-diagnostic',
+    path: '/gateway-diagnostic',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuthenticatedAuditRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
+  '/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/synology': typeof AuthenticatedSynologyRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/audit': typeof AuthenticatedAuditRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
+  '/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
   '/synology': typeof AuthenticatedSynologyRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/users': typeof AuthenticatedUsersRoute
@@ -169,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
+  '/_authenticated/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/synology': typeof AuthenticatedSynologyRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/dashboard'
     | '/documents'
+    | '/gateway-diagnostic'
     | '/projects'
     | '/synology'
     | '/tasks'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/dashboard'
     | '/documents'
+    | '/gateway-diagnostic'
     | '/synology'
     | '/tasks'
     | '/users'
@@ -228,6 +240,7 @@ export interface FileRouteTypes {
     | '/_authenticated/audit'
     | '/_authenticated/dashboard'
     | '/_authenticated/documents'
+    | '/_authenticated/gateway-diagnostic'
     | '/_authenticated/projects'
     | '/_authenticated/synology'
     | '/_authenticated/tasks'
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/projects'
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/gateway-diagnostic': {
+      id: '/_authenticated/gateway-diagnostic'
+      path: '/gateway-diagnostic'
+      fullPath: '/gateway-diagnostic'
+      preLoaderRoute: typeof AuthenticatedGatewayDiagnosticRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/documents': {
@@ -400,6 +420,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
+  AuthenticatedGatewayDiagnosticRoute: typeof AuthenticatedGatewayDiagnosticRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedSynologyRoute: typeof AuthenticatedSynologyRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -410,6 +431,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
+  AuthenticatedGatewayDiagnosticRoute: AuthenticatedGatewayDiagnosticRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedSynologyRoute: AuthenticatedSynologyRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
