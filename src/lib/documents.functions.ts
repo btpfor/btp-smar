@@ -17,8 +17,15 @@ const ALLOWED_MIME_PREFIXES = [
 ];
 
 /** Vérifie que l'utilisateur peut agir sur un projet (membre, manager, client, créateur ou admin). */
+type AuthedSupabase = Parameters<
+  Parameters<typeof requireSupabaseAuth.server>[0]
+>[0]["context"] extends { supabase: infer S }
+  ? S
+  : never;
+
+/** Vérifie que l'utilisateur peut agir sur un projet (membre, manager, client, créateur ou admin). */
 async function assertProjectAccess(
-  supabase: Awaited<ReturnType<typeof requireSupabaseAuth["_options"]["server"]>>["context"]["supabase"],
+  supabase: AuthedSupabase,
   userId: string,
   projectId: string | null | undefined,
 ) {
@@ -31,10 +38,8 @@ async function assertProjectAccess(
   if (!data) throw new Error("FORBIDDEN_PROJECT");
 }
 
-async function isAdmin(
-  supabase: Parameters<typeof assertProjectAccess>[0],
-  userId: string,
-): Promise<boolean> {
+async function isAdmin(supabase: AuthedSupabase, userId: string): Promise<boolean> {
+
   const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
   return Boolean(data);
 }
