@@ -107,8 +107,19 @@ Copy-Item .env.example .env
 | `SYNOLOGY_SMB_PASSWORD` | Mot de passe du compte SMB créé sur le DSM |
 
 ⚠️ **Ne jamais** committer ce fichier `.env`. Le `.gitignore` l'exclut déjà.
+Le mot de passe SMB n'est **jamais** loggué : les scripts scrubbent toute occurrence
+avant affichage et ne l'envoient **jamais** à Cloudflare.
 
-## 7. Tester la connexion Synology
+## 7. Vérifier l'environnement (`npm run doctor`)
+
+```powershell
+npm run doctor
+```
+
+Affiche version Node, version OpenSSL, plate-forme, et la configuration
+(mot de passe masqué). Doit se terminer par `✔ Environnement valide.`.
+
+## 7-bis. Tester la connexion Synology
 
 ```powershell
 npm run test:synology
