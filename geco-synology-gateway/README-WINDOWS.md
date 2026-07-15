@@ -100,7 +100,7 @@ Copy-Item .env.example .env
 |---|---|
 | `GECO_GATEWAY_ID` | `geco-gateway-01` (déjà pré-rempli — ne pas changer sans mettre à jour côté plateforme) |
 | `GECO_GATEWAY_SECRET` | Le secret HMAC (≥ 64 caractères) — **identique à celui configuré dans la plateforme GECO** |
-| `GECO_API_URL` | `https://btp-smar.touba-ndiaw01.workers.dev` |
+| `GECO_API_URL` | `https://btp-smar.lovable.app` |
 | `SYNOLOGY_HOST` | IP ou nom LAN du DS112 (ex. `192.168.1.10`) |
 | `SYNOLOGY_SMB_SHARE` | `GECO` |
 | `SYNOLOGY_SMB_USERNAME` | `geco_connector` (**optionnel** si stocké dans Credential Manager, voir §6-bis) |
@@ -216,7 +216,7 @@ npm run test:gateway
 Sortie attendue :
 
 ```
-[OK] API GECO accessible (HTTP 200 sur https://btp-smar.touba-ndiaw01.workers.dev)
+[OK] API GECO accessible (HTTP 200 sur https://btp-smar.lovable.app)
 [OK] Gateway ID accepté
 [OK] Signature HMAC acceptée
 [OK] Heartbeat envoyé (HTTP 200)
