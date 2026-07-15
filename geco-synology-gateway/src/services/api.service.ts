@@ -2,6 +2,7 @@ import { request } from "undici";
 import { env } from "../config/env.js";
 import { signOutgoing } from "../security/hmac.js";
 import { logger } from "../utils/logger.js";
+import { retryWithBackoff } from "../utils/retry.js";
 
 export interface Job {
   id: string;
@@ -12,6 +13,16 @@ export interface Job {
   project_id: string | null;
   payload: Record<string, unknown>;
   attempts: number;
+}
+
+class HttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly path: string,
+    public readonly bodyText: string,
+  ) {
+    super(`API ${path} → ${status} ${bodyText}`);
+  }
 }
 
 async function call<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
@@ -25,7 +36,7 @@ async function call<T>(method: "GET" | "POST", path: string, body?: unknown): Pr
   });
   const text = await res.body.text();
   if (res.statusCode < 200 || res.statusCode >= 300) {
-    throw new Error(`API ${method} ${path} → ${res.statusCode} ${text}`);
+    throw new HttpError(res.statusCode, `${method} ${path}`, text);
   }
   return text ? (JSON.parse(text) as T) : (undefined as T);
 }
@@ -47,10 +58,41 @@ export async function failJob(id: string, error: string, status: "FAILED" | "CON
   await call("POST", `/api/public/gateway/jobs/${id}/fail`, { error, status });
 }
 
+/**
+ * Heartbeat avec retry/backoff pour les erreurs réseau ou HTTP 5xx.
+ * Les erreurs 4xx (auth invalide, payload invalide…) ne sont PAS retentées :
+ * elles indiquent un problème de configuration côté gateway.
+ */
 export async function sendHeartbeat(payload: Record<string, unknown>): Promise<void> {
-  try {
-    await call("POST", "/api/public/gateway/heartbeat", payload);
-  } catch (err) {
-    logger.warn({ err }, "heartbeat failed");
-  }
+  await retryWithBackoff(
+    () => call("POST", "/api/public/gateway/heartbeat", payload),
+    {
+      retries: 4,
+      minDelayMs: 1000,
+      maxDelayMs: 20_000,
+      label: "heartbeat",
+      shouldRetry: (err) => {
+        if (err instanceof HttpError) return err.status >= 500 && err.status < 600;
+        const anyErr = err as { code?: string; message?: string };
+        if (anyErr.code) {
+          return [
+            "ECONNRESET",
+            "ECONNREFUSED",
+            "ENOTFOUND",
+            "EAI_AGAIN",
+            "ETIMEDOUT",
+            "UND_ERR_CONNECT_TIMEOUT",
+            "UND_ERR_SOCKET",
+            "UND_ERR_HEADERS_TIMEOUT",
+            "UND_ERR_BODY_TIMEOUT",
+          ].includes(anyErr.code);
+        }
+        const msg = (anyErr.message ?? "").toLowerCase();
+        return msg.includes("timeout") || msg.includes("network") || msg.includes("fetch failed");
+      },
+    },
+  ).catch((err) => {
+    logger.warn({ err: err instanceof Error ? err.message : String(err) }, "heartbeat failed after retries");
+    throw err;
+  });
 }
