@@ -277,7 +277,7 @@ export class WindowsSmbStorageAdapter implements StorageAdapter {
     return withSession("smb.delete", () => fs.unlink(absUnc(rel)));
   }
 
-  async stat(rel): Promise<StorageStat | null> {
+  async stat(rel: string): Promise<StorageStat | null> {
     return withSession("smb.stat", async () => {
       try {
         const s = await fs.stat(absUnc(rel));
