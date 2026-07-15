@@ -7,7 +7,7 @@ import "dotenv/config";
 import { lookup } from "node:dns/promises";
 import { createConnection } from "node:net";
 import { env } from "../config/env.js";
-import * as smb from "../services/smb-storage.service.js";
+import { WindowsSmbStorageAdapter } from "../services/windows-smb.service.js";
 
 function ok(msg: string) { console.log(`[OK] ${msg}`); }
 function fail(msg: string, err?: unknown): never {
@@ -29,6 +29,7 @@ async function main() {
   console.log(`→ Test Synology DS112 : ${env.SYNOLOGY_HOST} / partage \\\\${env.SYNOLOGY_HOST}\\${env.SYNOLOGY_SMB_SHARE}`);
   const userLabel = env.SYNOLOGY_SMB_USERNAME ?? "(via Windows Credential Manager)";
   console.log(`  Utilisateur SMB : ${userLabel} (mot de passe masqué)\n`);
+  const storage = new WindowsSmbStorageAdapter();
 
   try {
     const addr = await lookup(env.SYNOLOGY_HOST);
@@ -41,9 +42,12 @@ async function main() {
   } catch (e) { fail("Port SMB 445 inaccessible (pare-feu ? SMB désactivé sur le DS112 ?)", e); }
 
   try {
-    const r = await smb.testConnection();
-    if (!r.ok) throw new Error(r.message ?? "connexion refusée");
-    ok(`Partage ${env.SYNOLOGY_SMB_SHARE} accessible`);
+    await storage.connect();
+    const h = await storage.healthCheck();
+    if (!h.smbConnected) throw new Error(h.message ?? "session SMB refusée");
+    ok("Session SMB Windows établie");
+    if (!h.shareAccessible) throw new Error(h.message ?? "partage inaccessible");
+    ok(`Partage ${env.SYNOLOGY_SMB_SHARE} accessible en UNC`);
   } catch (e) { fail(`Partage ${env.SYNOLOGY_SMB_SHARE} inaccessible`, e); }
 
   const diagFolder = ".diagnostic";
@@ -51,26 +55,28 @@ async function main() {
   const payload = Buffer.from(`GECO test ${new Date().toISOString()}\n`);
 
   try {
-    await smb.ensureFolder(diagFolder);
-    await smb.listDir("");
+    await storage.ensureFolder(diagFolder);
+    await storage.list("");
     ok("Lecture autorisée (listing racine du partage)");
   } catch (e) { fail("Lecture refusée sur le partage", e); }
 
   try {
-    await smb.writeFile(fname, payload);
+    await storage.write(fname, payload);
     ok(`Écriture autorisée (${payload.length} octets → ${fname})`);
   } catch (e) { fail("Écriture refusée sur le partage", e); }
 
   try {
-    const back = await smb.readFile(fname);
+    const back = await storage.read(fname);
     if (!back.equals(payload)) throw new Error("contenu relu incohérent");
     ok("Relecture identique (checksum contenu OK)");
   } catch (e) { fail("Relecture échouée", e); }
 
   try {
-    await smb.unlink(fname);
+    await storage.delete(fname);
     ok("Suppression du fichier temporaire réussie");
   } catch (e) { fail("Suppression du fichier temporaire échouée", e); }
+
+  await storage.disconnect().catch(() => undefined);
 
   console.log("\n✔ Synology DS112 opérationnel pour le GECO Synology Gateway.");
 }

@@ -1,0 +1,4 @@
+ALTER TABLE public.gateway_heartbeats
+  ADD COLUMN IF NOT EXISTS share_accessible BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS read_allowed BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS write_allowed BOOLEAN NOT NULL DEFAULT false;

@@ -56,6 +56,9 @@ function SynologyPage() {
         nas_host: string | null;
         nas_reachable: boolean;
         smb_connected: boolean;
+        share_accessible?: boolean;
+        read_allowed?: boolean;
+        write_allowed?: boolean;
         total_bytes: number | null;
         used_bytes: number | null;
         available_bytes: number | null;
@@ -70,6 +73,7 @@ function SynologyPage() {
 
   const nasOk = Boolean(hb?.nas_reachable);
   const smbOk = Boolean(hb?.smb_connected);
+  const shareOk = hb?.share_accessible !== false;
   const usedPercent =
     hb?.total_bytes && hb.used_bytes ? Math.round((hb.used_bytes / hb.total_bytes) * 100) : 0;
 
@@ -113,6 +117,9 @@ function SynologyPage() {
               </Badge>
               <Badge variant={smbOk ? "secondary" : "destructive"}>
                 SMB : {smbOk ? "connecté" : "déconnecté"}
+              </Badge>
+              <Badge variant={shareOk ? "secondary" : "destructive"}>
+                Partage : {shareOk ? "accessible" : "inaccessible"}
               </Badge>
             </div>
 
