@@ -3,6 +3,8 @@ import { logger } from "../utils/logger.js";
 import * as api from "./api.service.js";
 import { executeJob } from "./job.service.js";
 import { sendHeartbeat as sendHeartbeatCore, startHeartbeatLoop } from "./heartbeat.service.js";
+import { pollFileJobsOnce } from "./file-jobs.service.js";
+
 
 interface State {
   running: boolean;
@@ -45,6 +47,7 @@ export function stopSync(): void {
 export async function pollOnce(): Promise<void> {
   state.lastPollAt = Date.now();
   try {
+    // 1) Legacy sync_jobs (compat)
     const jobs = await api.fetchPendingJobs();
     state.pending = jobs.length;
     for (const job of jobs) {
@@ -59,6 +62,17 @@ export async function pollOnce(): Promise<void> {
         try { await api.failJob(job.id, msg); } catch (fe) { logger.error({ fe }, "failJob err"); }
       }
     }
+
+    // 2) Nouveau modèle file_jobs (documents GECO)
+    try {
+      const r = await pollFileJobsOnce();
+      state.pending += 0; // pending est mis à jour côté heartbeat via l'API backend
+      if (r.failed > 0) state.failed += r.failed;
+      if (r.processed > 0) logger.info({ processed: r.processed }, "file_jobs traités");
+    } catch (err) {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, "file_jobs poll failed");
+    }
+
     state.lastSuccessAt = Date.now();
     state.lastError = null;
   } catch (err) {
@@ -66,6 +80,7 @@ export async function pollOnce(): Promise<void> {
     logger.warn({ err: state.lastError }, "poll failed — Gateway hors ligne côté API");
   }
 }
+
 
 export async function sendHeartbeatNow(): Promise<void> {
   await sendHeartbeatCore({
