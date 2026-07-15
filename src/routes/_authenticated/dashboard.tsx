@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_LABELS, type ProjectStatus } from "@/lib/roles";
 import { AdminBootstrap } from "@/components/AdminBootstrap";
+import { SynologyHealthCard } from "@/components/SynologyHealthCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Tableau de bord — Well Done Services" }] }),
