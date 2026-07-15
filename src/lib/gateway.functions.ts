@@ -243,7 +243,7 @@ export const updateAlertSettings = createServerFn({ method: "POST" })
         email_enabled: Boolean(data.emailEnabled),
         email_recipients: recipients,
         updated_at: new Date().toISOString(),
-      });
+      } as never);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
