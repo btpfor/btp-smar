@@ -1,4 +1,5 @@
 import { db } from "../database/sqlite.js";
+import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
 import { sanitizeRelative } from "../security/path-security.js";
 import * as smb from "./smb-storage.service.js";
