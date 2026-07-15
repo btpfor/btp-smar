@@ -15,6 +15,33 @@ même réseau LAN que le **Synology DS112**. Il :
 
 ---
 
+## ⚠ Migration depuis les anciennes versions (`smb2` / `ntlm`)
+
+Les versions antérieures du Gateway utilisaient les paquets npm `smb2` et
+`ntlm` pour parler au DS112. Ces paquets appellent des primitives cryptographiques
+héritées (`DES-ECB`, `RC4`) **désactivées par défaut dans OpenSSL 3** — donc
+dans Node.js 18+ et particulièrement Node.js 22 LTS. Résultat : `ERR_OSSL_EVP_UNSUPPORTED`
+au moment du `session_setup` NTLM, sans aucun moyen fiable de contourner sans
+`NODE_OPTIONS=--openssl-legacy-provider` (déconseillé en production).
+
+La version actuelle **ne dépend plus** de `smb2` ni de `ntlm`. Elle utilise
+le **client SMB natif de Windows** (via `net use`) pour ouvrir la session
+authentifiée, puis accède au partage en UNC (`\\HOST\GECO\...`) avec
+`fs/promises`. Aucun code NTLM n'est exécuté côté Node.js.
+
+Après un `git pull`, exécuter :
+
+```powershell
+Remove-Item -Recurse -Force node_modules, package-lock.json
+npm install
+npm ls smb2   # doit répondre "(empty)"
+npm ls ntlm   # doit répondre "(empty)"
+```
+
+---
+
+
+
 ## 1. Installer Node.js LTS
 
 Télécharger et installer **Node.js 20 LTS (ou plus récent)** pour Windows :
