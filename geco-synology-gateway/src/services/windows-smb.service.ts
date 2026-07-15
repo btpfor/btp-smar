@@ -65,7 +65,7 @@ let credentialSource: CredentialSource = "windows-session";
 interface ResolvedCredentials {
   user?: string;
   password?: string;
-  source: typeof credentialSource;
+  source: CredentialSource;
 }
 
 async function resolveCredentials(): Promise<ResolvedCredentials> {
@@ -306,6 +306,6 @@ export function getStorageAdapter(): StorageAdapter {
 }
 
 /** Exposé pour les scripts de diagnostic. */
-export function getCredentialSource(): typeof credentialSource {
+export function getCredentialSource(): CredentialSource {
   return credentialSource;
 }
