@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CircleCheck, CircleX, Loader2, Save, Wifi } from "lucide-react";
+import { CircleCheck, CircleX, Info, Loader2, RefreshCw, Save, Wifi } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,8 +20,8 @@ import { toast } from "sonner";
 import {
   getSynologyConfig,
   saveSynologyConfig,
-  checkSynologyHealth,
 } from "@/lib/synology.functions";
+import { getGatewayStatus } from "@/lib/gateway.functions";
 
 export const Route = createFileRoute("/_authenticated/synology-config")({
   head: () => ({ meta: [{ title: "Configuration Synology — GECO" }] }),
