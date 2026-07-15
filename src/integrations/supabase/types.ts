@@ -577,6 +577,7 @@ export type Database = {
         | "CALCULATE_CHECKSUM"
         | "SCAN_FOLDER"
         | "SYNC_METADATA"
+        | "GATEWAY_DIAGNOSTIC"
       sync_job_status:
         | "PENDING"
         | "PROCESSING"
@@ -736,6 +737,7 @@ export const Constants = {
         "CALCULATE_CHECKSUM",
         "SCAN_FOLDER",
         "SYNC_METADATA",
+        "GATEWAY_DIAGNOSTIC",
       ],
       sync_job_status: [
         "PENDING",
