@@ -190,16 +190,17 @@ export const getAlertSettings = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("gateway_alert_settings" as never)
       .select("*")
-      .eq("id", true)
+      .eq("id" as never, true as never)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (data as {
+    const row = data as {
       offline_threshold_minutes: number;
       notify_frequency_minutes: number;
       email_enabled: boolean;
       email_recipients: string[];
       updated_at: string;
-    }) ?? {
+    } | null;
+    return row ?? {
       offline_threshold_minutes: 5,
       notify_frequency_minutes: 30,
       email_enabled: false,

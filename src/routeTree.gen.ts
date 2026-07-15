@@ -17,12 +17,14 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSynologyRouteImport } from './routes/_authenticated/synology'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedGatewaysRouteImport } from './routes/_authenticated/gateways'
 import { Route as AuthenticatedGatewayDiagnosticRouteImport } from './routes/_authenticated/gateway-diagnostic'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as ApiPublicGatewayStatusRouteImport } from './routes/api/public/gateway/status'
 import { Route as ApiPublicGatewayJobsRouteImport } from './routes/api/public/gateway/jobs'
 import { Route as ApiPublicGatewayHeartbeatRouteImport } from './routes/api/public/gateway/heartbeat'
 import { Route as ApiPublicGatewayJobsIdStartRouteImport } from './routes/api/public/gateway/jobs.$id.start'
@@ -68,6 +70,11 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGatewaysRoute = AuthenticatedGatewaysRouteImport.update({
+  id: '/gateways',
+  path: '/gateways',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGatewayDiagnosticRoute =
   AuthenticatedGatewayDiagnosticRouteImport.update({
     id: '/gateway-diagnostic',
@@ -99,6 +106,11 @@ const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedProjectsRoute,
+} as any)
+const ApiPublicGatewayStatusRoute = ApiPublicGatewayStatusRouteImport.update({
+  id: '/api/public/gateway/status',
+  path: '/api/public/gateway/status',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicGatewayJobsRoute = ApiPublicGatewayJobsRouteImport.update({
   id: '/api/public/gateway/jobs',
@@ -138,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
+  '/gateways': typeof AuthenticatedGatewaysRoute
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/synology': typeof AuthenticatedSynologyRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -146,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
   '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/status': typeof ApiPublicGatewayStatusRoute
   '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
   '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
   '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
@@ -158,6 +172,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
+  '/gateways': typeof AuthenticatedGatewaysRoute
   '/synology': typeof AuthenticatedSynologyRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/users': typeof AuthenticatedUsersRoute
@@ -165,6 +180,7 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
   '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/status': typeof ApiPublicGatewayStatusRoute
   '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
   '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
   '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
@@ -179,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
+  '/_authenticated/gateways': typeof AuthenticatedGatewaysRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/synology': typeof AuthenticatedSynologyRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -187,6 +204,7 @@ export interface FileRoutesById {
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/api/public/gateway/heartbeat': typeof ApiPublicGatewayHeartbeatRoute
   '/api/public/gateway/jobs': typeof ApiPublicGatewayJobsRouteWithChildren
+  '/api/public/gateway/status': typeof ApiPublicGatewayStatusRoute
   '/api/public/gateway/jobs/$id/complete': typeof ApiPublicGatewayJobsIdCompleteRoute
   '/api/public/gateway/jobs/$id/fail': typeof ApiPublicGatewayJobsIdFailRoute
   '/api/public/gateway/jobs/$id/start': typeof ApiPublicGatewayJobsIdStartRoute
@@ -201,6 +219,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/documents'
     | '/gateway-diagnostic'
+    | '/gateways'
     | '/projects'
     | '/synology'
     | '/tasks'
@@ -209,6 +228,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/api/public/gateway/heartbeat'
     | '/api/public/gateway/jobs'
+    | '/api/public/gateway/status'
     | '/api/public/gateway/jobs/$id/complete'
     | '/api/public/gateway/jobs/$id/fail'
     | '/api/public/gateway/jobs/$id/start'
@@ -221,6 +241,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/documents'
     | '/gateway-diagnostic'
+    | '/gateways'
     | '/synology'
     | '/tasks'
     | '/users'
@@ -228,6 +249,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/api/public/gateway/heartbeat'
     | '/api/public/gateway/jobs'
+    | '/api/public/gateway/status'
     | '/api/public/gateway/jobs/$id/complete'
     | '/api/public/gateway/jobs/$id/fail'
     | '/api/public/gateway/jobs/$id/start'
@@ -241,6 +263,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/documents'
     | '/_authenticated/gateway-diagnostic'
+    | '/_authenticated/gateways'
     | '/_authenticated/projects'
     | '/_authenticated/synology'
     | '/_authenticated/tasks'
@@ -249,6 +272,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/'
     | '/api/public/gateway/heartbeat'
     | '/api/public/gateway/jobs'
+    | '/api/public/gateway/status'
     | '/api/public/gateway/jobs/$id/complete'
     | '/api/public/gateway/jobs/$id/fail'
     | '/api/public/gateway/jobs/$id/start'
@@ -261,6 +285,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicGatewayHeartbeatRoute: typeof ApiPublicGatewayHeartbeatRoute
   ApiPublicGatewayJobsRoute: typeof ApiPublicGatewayJobsRouteWithChildren
+  ApiPublicGatewayStatusRoute: typeof ApiPublicGatewayStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -321,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/gateways': {
+      id: '/_authenticated/gateways'
+      path: '/gateways'
+      fullPath: '/gateways'
+      preLoaderRoute: typeof AuthenticatedGatewaysRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/gateway-diagnostic': {
       id: '/_authenticated/gateway-diagnostic'
       path: '/gateway-diagnostic'
@@ -362,6 +394,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$id'
       preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
       parentRoute: typeof AuthenticatedProjectsRoute
+    }
+    '/api/public/gateway/status': {
+      id: '/api/public/gateway/status'
+      path: '/api/public/gateway/status'
+      fullPath: '/api/public/gateway/status'
+      preLoaderRoute: typeof ApiPublicGatewayStatusRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/gateway/jobs': {
       id: '/api/public/gateway/jobs'
@@ -421,6 +460,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedGatewayDiagnosticRoute: typeof AuthenticatedGatewayDiagnosticRoute
+  AuthenticatedGatewaysRoute: typeof AuthenticatedGatewaysRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedSynologyRoute: typeof AuthenticatedSynologyRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -432,6 +472,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedGatewayDiagnosticRoute: AuthenticatedGatewayDiagnosticRoute,
+  AuthenticatedGatewaysRoute: AuthenticatedGatewaysRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedSynologyRoute: AuthenticatedSynologyRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
@@ -463,6 +504,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicGatewayHeartbeatRoute: ApiPublicGatewayHeartbeatRoute,
   ApiPublicGatewayJobsRoute: ApiPublicGatewayJobsRouteWithChildren,
+  ApiPublicGatewayStatusRoute: ApiPublicGatewayStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
