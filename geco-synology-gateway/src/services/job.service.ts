@@ -170,6 +170,75 @@ async function dispatch(job: Job): Promise<Record<string, unknown>> {
       return { path: src, stat: st };
     }
 
+    case "GATEWAY_DIAGNOSTIC": {
+      const steps: Array<{ name: string; ok: boolean; detail?: string; ms: number }> = [];
+      const run = async (name: string, fn: () => Promise<string | void>) => {
+        const t0 = Date.now();
+        try {
+          const detail = await fn();
+          steps.push({ name, ok: true, detail: detail || undefined, ms: Date.now() - t0 });
+        } catch (e) {
+          steps.push({
+            name,
+            ok: false,
+            detail: e instanceof Error ? e.message : String(e),
+            ms: Date.now() - t0,
+          });
+        }
+      };
+
+      await run("SMB — connexion au partage GECO", async () => {
+        const r = await smb.testConnection();
+        if (!r.ok) throw new Error(r.message ?? "connexion refusée");
+        return "partage accessible";
+      });
+
+      await run("SMB — lecture de la racine", async () => {
+        const items = await smb.listDir("");
+        return `${items.length} entrée(s) : ${items.slice(0, 8).join(", ")}${items.length > 8 ? "…" : ""}`;
+      });
+
+      const diagFolder = ".diagnostic";
+      const fname = `${diagFolder}/diag-${Date.now()}.txt`;
+      const payload = Buffer.from(`GECO diagnostic ${new Date().toISOString()}\n`);
+
+      await run("SMB — création du dossier .diagnostic", async () => {
+        await smb.ensureFolder(diagFolder);
+        return diagFolder;
+      });
+
+      await run("SMB — écriture d'un fichier test", async () => {
+        await smb.writeFile(fname, payload);
+        return `${payload.length} octets écrits`;
+      });
+
+      await run("SMB — relecture et vérification", async () => {
+        const back = await smb.readFile(fname);
+        if (back.length !== payload.length || !back.equals(payload)) {
+          throw new Error("contenu relu incohérent");
+        }
+        return "contenu identique";
+      });
+
+      await run("SMB — suppression du fichier test", async () => {
+        await smb.unlink(fname);
+        return "fichier supprimé";
+      });
+
+      const allOk = steps.every((s) => s.ok);
+      const rootStat = await smb.stat("");
+      return {
+        allOk,
+        steps,
+        nasHost: env.SYNOLOGY_HOST,
+        share: env.SYNOLOGY_SMB_SHARE,
+        root: env.GECO_STORAGE_ROOT,
+        rootStat,
+        gatewayVersion: undefined,
+        checkedAt: new Date().toISOString(),
+      };
+    }
+
     default:
       throw new Error(`UNKNOWN_OPERATION:${job.operation}`);
   }
