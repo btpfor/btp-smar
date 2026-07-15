@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ShieldAlert, Activity, FileEdit } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { ShieldAlert, Activity, FileEdit, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRoles } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { listDocumentAudit } from "@/lib/documents.functions";
 
 export const Route = createFileRoute("/_authenticated/audit")({
   head: () => ({ meta: [{ title: "Audit — Well Done Services" }] }),
