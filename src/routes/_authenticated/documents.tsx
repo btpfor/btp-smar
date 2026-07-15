@@ -58,6 +58,7 @@ function DocumentsPage() {
   const { canManageProjects, isAdmin } = useRoles();
   const canManage = canManageProjects || isAdmin;
   const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
 
   const { data: projects = [] } = useQuery({
@@ -131,12 +132,12 @@ function DocumentsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, targetFolderId: string | null = folderId ?? null, silent = false) => {
     if (file.size > MAX_BYTES) {
-      toast.error("Fichier trop volumineux (max 500 MB)");
+      toast.error(`Fichier trop volumineux (max 500 MB) : ${file.name}`);
       return;
     }
-    const path = `${projectId ?? "global"}/${folderId ?? "root"}/${Date.now()}-${file.name}`;
+    const path = `${projectId ?? "global"}/${targetFolderId ?? "root"}/${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file);
     if (upErr) {
       toast.error(upErr.message);
@@ -147,7 +148,7 @@ function DocumentsPage() {
       storage_path: path,
       mime_type: file.type,
       size_bytes: file.size,
-      folder_id: folderId ?? null,
+      folder_id: targetFolderId,
       project_id: projectId ?? null,
       uploaded_by: user?.id,
     });
@@ -155,8 +156,62 @@ function DocumentsPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Fichier ajouté");
+    if (!silent) toast.success("Fichier ajouté");
     qc.invalidateQueries({ queryKey: ["files"] });
+  };
+
+  const uploadFolder = async (fileList: FileList) => {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+    const cache = new Map<string, string | null>();
+    cache.set("", folderId ?? null);
+
+    const ensureFolder = async (segments: string[]): Promise<string | null> => {
+      const key = segments.join("/");
+      if (cache.has(key)) return cache.get(key)!;
+      const parent = await ensureFolder(segments.slice(0, -1));
+      const name = segments[segments.length - 1];
+      let query = supabase
+        .from("folders")
+        .select("id")
+        .eq("name", name);
+      query = parent ? query.eq("parent_id", parent) : query.is("parent_id", null);
+      query = projectId ? query.eq("project_id", projectId) : query.is("project_id", null);
+      const { data: existing } = await query.maybeSingle();
+      let id: string | null = existing?.id ?? null;
+      if (!id) {
+        const { data: inserted, error } = await supabase
+          .from("folders")
+          .insert({
+            name,
+            parent_id: parent,
+            project_id: projectId ?? null,
+            created_by: user?.id,
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        id = inserted.id;
+      }
+      cache.set(key, id);
+      return id;
+    };
+
+    const tId = toast.loading(`Import de ${files.length} fichier(s)…`);
+    try {
+      for (const f of files) {
+        const rel = (f as File & { webkitRelativePath?: string }).webkitRelativePath || f.name;
+        const parts = rel.split("/").filter(Boolean);
+        const folderSegments = parts.slice(0, -1);
+        const target = await ensureFolder(folderSegments);
+        await uploadFile(f, target, true);
+      }
+      toast.success(`${files.length} fichier(s) importé(s)`, { id: tId });
+      qc.invalidateQueries({ queryKey: ["folders"] });
+      qc.invalidateQueries({ queryKey: ["files"] });
+    } catch (e) {
+      toast.error((e as Error).message, { id: tId });
+    }
   };
 
   const download = async (path: string, name: string) => {
@@ -232,11 +287,27 @@ function DocumentsPage() {
               e.target.value = "";
             }}
           />
+          <input
+            ref={folderInput}
+            type="file"
+            className="hidden"
+            // @ts-expect-error non-standard attributes for folder picker
+            webkitdirectory=""
+            directory=""
+            multiple
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) uploadFolder(e.target.files);
+              e.target.value = "";
+            }}
+          />
           <Button
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
             onClick={() => fileInput.current?.click()}
           >
             <Upload className="mr-2 h-4 w-4" /> Importer
+          </Button>
+          <Button variant="outline" onClick={() => folderInput.current?.click()}>
+            <FolderPlus className="mr-2 h-4 w-4" /> Importer dossier
           </Button>
         </div>
       </div>
