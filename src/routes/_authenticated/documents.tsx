@@ -287,11 +287,27 @@ function DocumentsPage() {
               e.target.value = "";
             }}
           />
+          <input
+            ref={folderInput}
+            type="file"
+            className="hidden"
+            // @ts-expect-error non-standard attributes for folder picker
+            webkitdirectory=""
+            directory=""
+            multiple
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) uploadFolder(e.target.files);
+              e.target.value = "";
+            }}
+          />
           <Button
             className="bg-accent hover:bg-accent/90 text-accent-foreground"
             onClick={() => fileInput.current?.click()}
           >
             <Upload className="mr-2 h-4 w-4" /> Importer
+          </Button>
+          <Button variant="outline" onClick={() => folderInput.current?.click()}>
+            <FolderPlus className="mr-2 h-4 w-4" /> Importer dossier
           </Button>
         </div>
       </div>
