@@ -243,15 +243,15 @@ export class WindowsSmbStorageAdapter implements StorageAdapter {
     };
   }
 
-  async list(rel) {
+  async list(rel: string) {
     return withSession("smb.list", () => fs.readdir(absUnc(rel)));
   }
 
-  async read(rel) {
+  async read(rel: string) {
     return withSession("smb.read", () => fs.readFile(absUnc(rel)));
   }
 
-  async write(rel, data) {
+  async write(rel: string, data: Buffer) {
     return withSession("smb.write", async () => {
       const safe = sanitizeRelative(rel);
       const parent = safe.split("/").slice(0, -1).join("/");
@@ -260,11 +260,11 @@ export class WindowsSmbStorageAdapter implements StorageAdapter {
     });
   }
 
-  async rename(from, to) {
+  async rename(from: string, to: string) {
     return withSession("smb.rename", () => fs.rename(absUnc(from), absUnc(to)));
   }
 
-  async move(from, to) {
+  async move(from: string, to: string) {
     return withSession("smb.move", async () => {
       const safe = sanitizeRelative(to);
       const parent = safe.split("/").slice(0, -1).join("/");
@@ -273,7 +273,7 @@ export class WindowsSmbStorageAdapter implements StorageAdapter {
     });
   }
 
-  async delete(rel) {
+  async delete(rel: string) {
     return withSession("smb.delete", () => fs.unlink(absUnc(rel)));
   }
 
@@ -288,7 +288,7 @@ export class WindowsSmbStorageAdapter implements StorageAdapter {
     });
   }
 
-  async ensureFolder(rel) {
+  async ensureFolder(rel: string) {
     return withSession("smb.ensureFolder", async () => {
       await fs.mkdir(absUnc(rel), { recursive: true });
     });

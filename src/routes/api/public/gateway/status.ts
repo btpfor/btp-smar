@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/public/gateway/status")({
         const { data, error } = await supabaseAdmin
           .from("gateway_heartbeats")
           .select(
-            "connector_id,gateway_version,nas_host,nas_reachable,smb_connected,pending_jobs,failed_jobs,last_sync_at,last_error,updated_at",
+            "connector_id,gateway_version,nas_host,nas_reachable,smb_connected,share_accessible,read_allowed,write_allowed,pending_jobs,failed_jobs,last_sync_at,last_error,updated_at",
           )
           .order("updated_at", { ascending: false });
 
@@ -50,6 +50,9 @@ export const Route = createFileRoute("/api/public/gateway/status")({
           nasHost: h.nas_host,
           nasReachable: h.nas_reachable,
           smbConnected: h.smb_connected,
+          shareAccessible: h.share_accessible,
+          readAllowed: h.read_allowed,
+          writeAllowed: h.write_allowed,
           pendingJobs: h.pending_jobs,
           failedJobs: h.failed_jobs,
           lastSyncAt: h.last_sync_at,
