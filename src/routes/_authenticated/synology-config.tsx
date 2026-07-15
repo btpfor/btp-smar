@@ -68,13 +68,15 @@ function SynologyConfigPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const healthFn = useServerFn(checkSynologyHealth);
-  const health = useMutation({
-    mutationFn: () => healthFn({ data: { host, port, projectId } }),
-    onSuccess: (r) => {
-      if (r.ok) toast.success(`Joignable (${r.status}) en ${r.latencyMs} ms`);
-      else toast.error(r.error ?? "Injoignable");
-    },
+  // Le contrôle de santé s'appuie sur le heartbeat réel du GECO Synology
+  // Gateway installé sur le LAN — le serveur cloud ne peut pas atteindre
+  // directement une IP privée type 192.168.x.x.
+  const gwFn = useServerFn(getGatewayStatus);
+  const health = useQuery({
+    queryKey: ["gateway-status"],
+    queryFn: () => gwFn(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: false,
   });
 
   const projectOptions = useMemo(
