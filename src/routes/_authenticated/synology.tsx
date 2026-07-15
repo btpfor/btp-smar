@@ -220,6 +220,67 @@ function SynologyPage() {
           </p>
         )}
       </Card>
+
+      {/* --- GECO Documents storage stats --- */}
+      <Card className="p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold uppercase text-muted-foreground">
+            Documents GECO
+          </h2>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={retry.isPending || (stats.data?.fileJobs.failed ?? 0) === 0}
+            onClick={() => retry.mutate(undefined)}
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Relancer les erreurs
+          </Button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={<FileText className="h-5 w-5" />} label="Documents actifs" value={String(stats.data?.documents.active ?? 0)} />
+          <StatCard icon={<Archive className="h-5 w-5" />} label="Archivés" value={String(stats.data?.documents.archived ?? 0)} />
+          <StatCard icon={<UploadCloud className="h-5 w-5" />} label="En transit" value={String((stats.data?.versions.pending ?? 0) + (stats.data?.versions.uploading ?? 0))} />
+          <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Stockés sur DS112" value={String(stats.data?.versions.stored ?? 0)} />
+          <StatCard icon={<ListTodo className="h-5 w-5" />} label="Jobs en attente" value={String(stats.data?.fileJobs.pending ?? 0)} />
+          <StatCard icon={<RefreshCw className="h-5 w-5" />} label="Jobs en cours" value={String(stats.data?.fileJobs.running ?? 0)} />
+          <StatCard icon={<AlertTriangle className="h-5 w-5" />} label="Jobs en échec" value={String(stats.data?.fileJobs.failed ?? 0)} tone={(stats.data?.fileJobs.failed ?? 0) > 0 ? "danger" : "default"} />
+          <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Jobs terminés" value={String(stats.data?.fileJobs.completed ?? 0)} />
+        </div>
+
+        {(stats.data?.recentFailures?.length ?? 0) > 0 && (
+          <div className="mt-6">
+            <h3 className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+              Dernières erreurs
+            </h3>
+            <div className="divide-y rounded-md border">
+              {stats.data!.recentFailures.map((j) => (
+                <div key={j.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{j.type}</Badge>
+                      <span className="text-xs text-muted-foreground">
+                        tentative {j.attempt_count}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-destructive">
+                      {j.error ?? "Erreur inconnue"}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => retry.mutate(j.id)}
+                    disabled={retry.isPending}
+                  >
+                    <RotateCcw className="mr-1 h-3 w-3" /> Relancer
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
