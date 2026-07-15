@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { STATUS_LABELS, type ProjectStatus } from "@/lib/roles";
 import { AdminBootstrap } from "@/components/AdminBootstrap";
+import { SynologyHealthCard } from "@/components/SynologyHealthCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Tableau de bord — Well Done Services" }] }),
@@ -88,6 +89,10 @@ function Dashboard() {
         <StatCard icon={Clock} label="En cours" value={stats.enCours} tone="accent" />
         <StatCard icon={CheckCircle2} label="Terminés" value={stats.termines} tone="success" />
         <StatCard icon={TrendingUp} label="Avancement moyen" value={`${stats.avgProgress}%`} tone="primary" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <SynologyHealthCard />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

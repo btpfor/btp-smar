@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedSynologyConfigRouteImport } from './routes/_authenticated/synology-config'
 import { Route as AuthenticatedSynologyRouteImport } from './routes/_authenticated/synology'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedGatewaysRouteImport } from './routes/_authenticated/gateways'
@@ -60,6 +61,12 @@ const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   path: '/tasks',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSynologyConfigRoute =
+  AuthenticatedSynologyConfigRouteImport.update({
+    id: '/synology-config',
+    path: '/synology-config',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSynologyRoute = AuthenticatedSynologyRouteImport.update({
   id: '/synology',
   path: '/synology',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/gateways': typeof AuthenticatedGatewaysRoute
   '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/synology': typeof AuthenticatedSynologyRoute
+  '/synology-config': typeof AuthenticatedSynologyConfigRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/users': typeof AuthenticatedUsersRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/gateway-diagnostic': typeof AuthenticatedGatewayDiagnosticRoute
   '/gateways': typeof AuthenticatedGatewaysRoute
   '/synology': typeof AuthenticatedSynologyRoute
+  '/synology-config': typeof AuthenticatedSynologyConfigRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/users': typeof AuthenticatedUsersRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/gateways': typeof AuthenticatedGatewaysRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/synology': typeof AuthenticatedSynologyRoute
+  '/_authenticated/synology-config': typeof AuthenticatedSynologyConfigRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/gateways'
     | '/projects'
     | '/synology'
+    | '/synology-config'
     | '/tasks'
     | '/users'
     | '/projects/$id'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/gateway-diagnostic'
     | '/gateways'
     | '/synology'
+    | '/synology-config'
     | '/tasks'
     | '/users'
     | '/projects/$id'
@@ -266,6 +278,7 @@ export interface FileRouteTypes {
     | '/_authenticated/gateways'
     | '/_authenticated/projects'
     | '/_authenticated/synology'
+    | '/_authenticated/synology-config'
     | '/_authenticated/tasks'
     | '/_authenticated/users'
     | '/_authenticated/projects/$id'
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/synology-config': {
+      id: '/_authenticated/synology-config'
+      path: '/synology-config'
+      fullPath: '/synology-config'
+      preLoaderRoute: typeof AuthenticatedSynologyConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/synology': {
@@ -463,6 +483,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGatewaysRoute: typeof AuthenticatedGatewaysRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedSynologyRoute: typeof AuthenticatedSynologyRoute
+  AuthenticatedSynologyConfigRoute: typeof AuthenticatedSynologyConfigRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
@@ -475,6 +496,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGatewaysRoute: AuthenticatedGatewaysRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedSynologyRoute: AuthenticatedSynologyRoute,
+  AuthenticatedSynologyConfigRoute: AuthenticatedSynologyConfigRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }

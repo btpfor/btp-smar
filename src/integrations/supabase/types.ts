@@ -517,6 +517,44 @@ export type Database = {
         }
         Relationships: []
       }
+      synology_configs: {
+        Row: {
+          created_at: string
+          host: string
+          id: string
+          port: number
+          project_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          host: string
+          id?: string
+          port?: number
+          project_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          host?: string
+          id?: string
+          port?: number
+          project_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "synology_configs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           assigned_to: string | null
