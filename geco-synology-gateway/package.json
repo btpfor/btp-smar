@@ -2,7 +2,7 @@
   "name": "geco-synology-gateway",
   "version": "1.0.0",
   "private": true,
-  "description": "GECO Synology Gateway — service Node.js autonome (Windows/Linux) reliant la plateforme GECO au NAS Synology DS112 via SMB.",
+  "description": "GECO Synology Gateway — service Node.js autonome (Windows) reliant la plateforme GECO au NAS Synology DS112 via le client SMB natif de Windows.",
   "license": "UNLICENSED",
   "type": "module",
   "main": "dist/index.js",
@@ -11,12 +11,16 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "doctor": "tsx src/scripts/doctor.ts",
     "test:synology": "tsx src/scripts/test-synology.ts",
     "test:gateway": "tsx src/scripts/test-gateway.ts"
   },
   "engines": {
     "node": ">=20.11"
   },
+  "os": [
+    "win32"
+  ],
   "dependencies": {
     "@fastify/helmet": "^12.0.1",
     "@fastify/rate-limit": "^10.1.1",
@@ -27,7 +31,6 @@
     "mime-types": "^2.1.35",
     "pino": "^9.4.0",
     "pino-pretty": "^11.2.2",
-    "smb2": "^0.2.11",
     "undici": "^6.20.0",
     "zod": "^3.23.8"
   },
