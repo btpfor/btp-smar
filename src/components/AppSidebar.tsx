@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FolderKanban, Users, HardHat, FolderOpen, ListTodo, ScrollText, HardDrive, Activity, Server } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, HardHat, FolderOpen, ListTodo, ScrollText, HardDrive, Activity, Server, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
