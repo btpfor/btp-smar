@@ -1,10 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 type DocCategory = Database["public"]["Enums"]["document_category"];
 type DocStatus = Database["public"]["Enums"]["document_status"];
 type StorageStatus = Database["public"]["Enums"]["storage_status"];
+
+type AuthedSupabase = SupabaseClient<Database>;
 
 const TRANSIT_BUCKET = "documents";
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
@@ -16,12 +19,6 @@ const ALLOWED_MIME_PREFIXES = [
   "video/",
 ];
 
-/** Vérifie que l'utilisateur peut agir sur un projet (membre, manager, client, créateur ou admin). */
-type AuthedSupabase = Parameters<
-  Parameters<typeof requireSupabaseAuth.server>[0]
->[0]["context"] extends { supabase: infer S }
-  ? S
-  : never;
 
 /** Vérifie que l'utilisateur peut agir sur un projet (membre, manager, client, créateur ou admin). */
 async function assertProjectAccess(
