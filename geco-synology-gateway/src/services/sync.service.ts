@@ -1,9 +1,8 @@
-import { env, VERSION } from "../config/env.js";
+import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
-import { db } from "../database/sqlite.js";
 import * as api from "./api.service.js";
-import * as smb from "./smb-storage.service.js";
 import { executeJob } from "./job.service.js";
+import { sendHeartbeat as sendHeartbeatCore, startHeartbeatLoop } from "./heartbeat.service.js";
 
 interface State {
   running: boolean;
@@ -24,24 +23,23 @@ export const state: State = {
 };
 
 let pollTimer: NodeJS.Timeout | null = null;
-let heartbeatTimer: NodeJS.Timeout | null = null;
 
 export function startSync(): void {
   if (pollTimer) return;
   state.running = true;
   logger.info({ interval: env.POLL_INTERVAL_MS }, "sync loop started");
   pollTimer = setInterval(() => { void pollOnce(); }, env.POLL_INTERVAL_MS);
-  heartbeatTimer = setInterval(() => { void sendHeartbeatNow(); }, env.HEARTBEAT_INTERVAL_MS);
+  startHeartbeatLoop(() => ({
+    pendingJobs: state.pending,
+    lastSyncAt: state.lastSuccessAt,
+  }));
   void pollOnce();
-  void sendHeartbeatNow();
 }
 
 export function stopSync(): void {
   state.running = false;
   if (pollTimer) clearInterval(pollTimer);
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
   pollTimer = null;
-  heartbeatTimer = null;
 }
 
 export async function pollOnce(): Promise<void> {
@@ -70,19 +68,9 @@ export async function pollOnce(): Promise<void> {
 }
 
 export async function sendHeartbeatNow(): Promise<void> {
-  const smbStatus = await smb.testConnection();
-  const failedCount = db
-    .prepare("SELECT COUNT(*) as c FROM job_history WHERE status='FAILED'")
-    .get() as { c: number };
-
-  await api.sendHeartbeat({
-    gatewayVersion: VERSION,
-    nasHost: env.SYNOLOGY_HOST,
-    nasReachable: smbStatus.ok,
-    smbConnected: smbStatus.ok,
-    lastError: smbStatus.ok ? null : smbStatus.message ?? "SMB unreachable",
+  await sendHeartbeatCore({
     pendingJobs: state.pending,
-    failedJobs: failedCount.c,
-    lastSyncAt: state.lastSuccessAt ? new Date(state.lastSuccessAt).toISOString() : null,
+    lastSyncAt: state.lastSuccessAt,
   });
 }
+
