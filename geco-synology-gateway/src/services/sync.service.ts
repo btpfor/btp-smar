@@ -1,9 +1,8 @@
-import { env, VERSION } from "../config/env.js";
+import { env } from "../config/env.js";
 import { logger } from "../utils/logger.js";
-import { db } from "../database/sqlite.js";
 import * as api from "./api.service.js";
-import * as smb from "./smb-storage.service.js";
 import { executeJob } from "./job.service.js";
+import { sendHeartbeat as sendHeartbeatCore, startHeartbeatLoop } from "./heartbeat.service.js";
 
 interface State {
   running: boolean;
