@@ -48,3 +48,47 @@ export const runGatewaySync = createServerFn({ method: "POST" })
       .eq("status", "PENDING");
     return { queued: count ?? 0 };
   });
+
+export const startGatewayDiagnostic = createServerFn({ method: "POST" }).handler(async () => {
+  const gatewayId = process.env.GECO_GATEWAY_ID;
+  if (!gatewayId) throw new Error("GATEWAY_NOT_CONFIGURED");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("sync_jobs")
+    .insert({
+      connector_id: gatewayId,
+      operation: "GATEWAY_DIAGNOSTIC" as never,
+      payload: { requestedAt: new Date().toISOString() } as never,
+      status: "PENDING",
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return { jobId: data.id };
+});
+
+export const getGatewayDiagnostic = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => data as { jobId: string })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
+      .from("sync_jobs")
+      .select("id,status,result,last_error,created_at,started_at,completed_at")
+      .eq("id", data.jobId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const listGatewayErrors = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin
+    .from("sync_jobs")
+    .select("id,operation,source_path,destination_path,last_error,status,completed_at,created_at")
+    .in("status", ["FAILED", "CONFLICT"])
+    .order("completed_at", { ascending: false, nullsFirst: false })
+    .limit(50);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+});
+

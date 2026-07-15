@@ -1,0 +1,1 @@
+ALTER TYPE public.sync_job_operation ADD VALUE IF NOT EXISTS 'GATEWAY_DIAGNOSTIC';

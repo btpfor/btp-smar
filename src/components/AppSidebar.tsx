@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FolderKanban, Users, HardHat, FolderOpen, ListTodo, ScrollText, HardDrive } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Users, HardHat, FolderOpen, ListTodo, ScrollText, HardDrive, Activity } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +30,7 @@ export function AppSidebar() {
   if (isAdmin) items.push({ title: "Utilisateurs", url: "/users", icon: Users });
   if (isAdmin) items.push({ title: "Audit", url: "/audit", icon: ScrollText });
   if (isAdmin) items.push({ title: "Stockage & Synology", url: "/synology", icon: HardDrive });
+  if (isAdmin) items.push({ title: "Diagnostic Gateway", url: "/gateway-diagnostic", icon: Activity });
 
 
   const isActive = (p: string) =>
