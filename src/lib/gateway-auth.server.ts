@@ -19,6 +19,16 @@ export interface AuthFail {
   signatureLength?: number;
 }
 
+interface GatewayConfig {
+  gatewayId?: string;
+  gatewaySecret?: string;
+  source: "worker-env" | "process-env" | "missing";
+}
+
+type WorkerRuntimeGlobals = typeof globalThis & {
+  __env__?: Record<string, unknown>;
+};
+
 export function jsonResponse(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -37,10 +47,45 @@ function safeEqualHex(a: string, b: string): boolean {
   return timingSafeEqual(ab, bb);
 }
 
+function readStringEnv(env: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = env?.[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function readGatewayConfig(): GatewayConfig {
+  const workerEnv = (globalThis as WorkerRuntimeGlobals).__env__;
+  const workerGatewayId = readStringEnv(workerEnv, "GECO_GATEWAY_ID");
+  const workerGatewaySecret = readStringEnv(workerEnv, "GECO_GATEWAY_SECRET");
+  if (workerGatewayId || workerGatewaySecret) {
+    return {
+      gatewayId: workerGatewayId,
+      gatewaySecret: workerGatewaySecret,
+      source: "worker-env",
+    };
+  }
+
+  return {
+    gatewayId: process.env.GECO_GATEWAY_ID,
+    gatewaySecret: process.env.GECO_GATEWAY_SECRET,
+    source: process.env.GECO_GATEWAY_ID || process.env.GECO_GATEWAY_SECRET ? "process-env" : "missing",
+  };
+}
+
+function logGatewayConfigCheck(config: GatewayConfig): void {
+  console.warn({
+    event: "GATEWAY_CONFIG_CHECK",
+    gatewayIdConfigured: Boolean(config.gatewayId),
+    gatewaySecretConfigured: Boolean(config.gatewaySecret),
+    gatewaySecretLength: config.gatewaySecret?.length ?? 0,
+  });
+}
+
 export async function verifyGatewayRequest(request: Request): Promise<AuthOk | AuthFail> {
-  const expectedId = process.env.GECO_GATEWAY_ID;
-  const secret = process.env.GECO_GATEWAY_SECRET;
+  const config = readGatewayConfig();
+  const expectedId = config.gatewayId;
+  const secret = config.gatewaySecret;
   if (!expectedId || !secret) {
+    logGatewayConfigCheck(config);
     return { ok: false, status: 503, error: "GATEWAY_NOT_CONFIGURED", step: "READ_GATEWAY_ENV" };
   }
   const id = request.headers.get("x-geco-gateway-id");
