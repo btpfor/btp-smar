@@ -58,6 +58,7 @@ function DocumentsPage() {
   const { canManageProjects, isAdmin } = useRoles();
   const canManage = canManageProjects || isAdmin;
   const fileInput = useRef<HTMLInputElement>(null);
+  const folderInput = useRef<HTMLInputElement>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
 
   const { data: projects = [] } = useQuery({
