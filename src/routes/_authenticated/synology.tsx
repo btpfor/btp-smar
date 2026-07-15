@@ -83,7 +83,7 @@ function SynologyPage() {
         <div>
           <h1 className="text-2xl font-bold">Stockage & Synology</h1>
           <p className="text-sm text-muted-foreground">
-            NAS : Synology DS112 — via GECO Synology Gateway
+            NAS : Synology DS112 (192.168.1.21) — via GECO Synology Gateway
           </p>
         </div>
         <div className="flex gap-2">
