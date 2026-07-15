@@ -80,6 +80,299 @@ export type Database = {
         }
         Relationships: []
       }
+      document_audit: {
+        Row: {
+          action: string
+          created_at: string
+          document_id: string | null
+          document_version_id: string | null
+          gateway_id: string | null
+          id: string
+          metadata: Json
+          project_id: string | null
+          request_id: string | null
+          result: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          gateway_id?: string | null
+          id?: string
+          metadata?: Json
+          project_id?: string | null
+          request_id?: string | null
+          result?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          gateway_id?: string | null
+          id?: string
+          metadata?: Json
+          project_id?: string | null
+          request_id?: string | null
+          result?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_audit_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_audit_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_audit_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          checksum_sha256: string | null
+          created_at: string
+          document_id: string
+          gateway_id: string | null
+          id: string
+          mime_type: string | null
+          physical_name: string
+          size: number
+          storage_error: string | null
+          storage_status: Database["public"]["Enums"]["storage_status"]
+          stored_at: string | null
+          synology_relative_path: string | null
+          transit_storage_key: string | null
+          updated_at: string
+          uploaded_by: string | null
+          version_number: number
+        }
+        Insert: {
+          checksum_sha256?: string | null
+          created_at?: string
+          document_id: string
+          gateway_id?: string | null
+          id?: string
+          mime_type?: string | null
+          physical_name: string
+          size?: number
+          storage_error?: string | null
+          storage_status?: Database["public"]["Enums"]["storage_status"]
+          stored_at?: string | null
+          synology_relative_path?: string | null
+          transit_storage_key?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          version_number: number
+        }
+        Update: {
+          checksum_sha256?: string | null
+          created_at?: string
+          document_id?: string
+          gateway_id?: string | null
+          id?: string
+          mime_type?: string | null
+          physical_name?: string
+          size?: number
+          storage_error?: string | null
+          storage_status?: Database["public"]["Enums"]["storage_status"]
+          stored_at?: string | null
+          synology_relative_path?: string | null
+          transit_storage_key?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category: Database["public"]["Enums"]["document_category"]
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          folder_id: string | null
+          id: string
+          mime_type: string | null
+          name: string
+          owner_id: string | null
+          project_id: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          folder_id?: string | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          owner_id?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["document_category"]
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          folder_id?: string | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          owner_id?: string | null
+          project_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      file_jobs: {
+        Row: {
+          attempt_count: number
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          document_version_id: string | null
+          error: string | null
+          gateway_id: string | null
+          id: string
+          max_attempts: number
+          next_retry_at: string | null
+          payload: Json
+          project_id: string | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["file_job_status"]
+          transit_storage_key: string | null
+          type: Database["public"]["Enums"]["file_job_type"]
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          document_version_id?: string | null
+          error?: string | null
+          gateway_id?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          project_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["file_job_status"]
+          transit_storage_key?: string | null
+          type: Database["public"]["Enums"]["file_job_type"]
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          document_version_id?: string | null
+          error?: string | null
+          gateway_id?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          payload?: Json
+          project_id?: string | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["file_job_status"]
+          transit_storage_key?: string | null
+          type?: Database["public"]["Enums"]["file_job_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "file_jobs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_jobs_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "file_jobs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       files: {
         Row: {
           allowed_roles: Database["public"]["Enums"]["app_role"][] | null
@@ -659,6 +952,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      project_storage_prefix: { Args: { _project_id: string }; Returns: string }
       user_has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -677,8 +971,43 @@ export type Database = {
         | "account_enabled"
       app_role: "admin" | "chef_projet" | "ingenieur" | "client"
       audit_action: "insert" | "update" | "delete"
+      document_category:
+        | "ADMINISTRATIF"
+        | "CONTRATS"
+        | "DEVIS"
+        | "FACTURES"
+        | "PLANS"
+        | "RAPPORTS"
+        | "PHOTOS"
+        | "PV"
+        | "AUTRES"
+      document_status: "ACTIVE" | "ARCHIVED" | "SOFT_DELETED"
+      file_job_status:
+        | "PENDING"
+        | "CLAIMED"
+        | "RUNNING"
+        | "COMPLETED"
+        | "FAILED"
+        | "RETRY"
+      file_job_type:
+        | "UPLOAD_FILE"
+        | "READ_FILE"
+        | "CREATE_DIRECTORY"
+        | "MOVE_FILE"
+        | "RENAME_FILE"
+        | "ARCHIVE_FILE"
+        | "DELETE_FILE"
+        | "HEALTH_CHECK"
+        | "CALCULATE_CHECKSUM"
       notification_type: "document" | "tache" | "projet" | "rapport" | "systeme"
       project_status: "en_preparation" | "en_cours" | "suspendu" | "termine"
+      storage_status:
+        | "PENDING_STORAGE"
+        | "UPLOADING"
+        | "STORED"
+        | "STORAGE_FAILED"
+        | "ARCHIVED"
+        | "UNAVAILABLE"
       sync_job_operation:
         | "CREATE_FOLDER"
         | "CREATE_PROJECT_STRUCTURE"
@@ -837,8 +1166,47 @@ export const Constants = {
       ],
       app_role: ["admin", "chef_projet", "ingenieur", "client"],
       audit_action: ["insert", "update", "delete"],
+      document_category: [
+        "ADMINISTRATIF",
+        "CONTRATS",
+        "DEVIS",
+        "FACTURES",
+        "PLANS",
+        "RAPPORTS",
+        "PHOTOS",
+        "PV",
+        "AUTRES",
+      ],
+      document_status: ["ACTIVE", "ARCHIVED", "SOFT_DELETED"],
+      file_job_status: [
+        "PENDING",
+        "CLAIMED",
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "RETRY",
+      ],
+      file_job_type: [
+        "UPLOAD_FILE",
+        "READ_FILE",
+        "CREATE_DIRECTORY",
+        "MOVE_FILE",
+        "RENAME_FILE",
+        "ARCHIVE_FILE",
+        "DELETE_FILE",
+        "HEALTH_CHECK",
+        "CALCULATE_CHECKSUM",
+      ],
       notification_type: ["document", "tache", "projet", "rapport", "systeme"],
       project_status: ["en_preparation", "en_cours", "suspendu", "termine"],
+      storage_status: [
+        "PENDING_STORAGE",
+        "UPLOADING",
+        "STORED",
+        "STORAGE_FAILED",
+        "ARCHIVED",
+        "UNAVAILABLE",
+      ],
       sync_job_operation: [
         "CREATE_FOLDER",
         "CREATE_PROJECT_STRUCTURE",
