@@ -150,54 +150,116 @@ function SynologyConfigPage() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => health.mutate()}
-            disabled={health.isPending}
+            onClick={() => health.refetch()}
+            disabled={health.isFetching}
           >
-            {health.isPending ? (
+            {health.isFetching ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Wifi className="mr-2 h-4 w-4" />
+              <RefreshCw className="mr-2 h-4 w-4" />
             )}
-            Tester la connectivité
+            Actualiser le statut
           </Button>
         </div>
 
-        {health.data && (
-          <div className="rounded-md border p-4 text-sm">
-            <div className="flex items-center gap-2">
-              {health.data.ok ? (
-                <Badge className="bg-emerald-600 text-white">
-                  <CircleCheck className="mr-1 h-3 w-3" /> Joignable
-                </Badge>
-              ) : (
-                <Badge variant="destructive">
-                  <CircleX className="mr-1 h-3 w-3" /> Injoignable
-                </Badge>
-              )}
-              <span className="text-muted-foreground">{health.data.url}</span>
-            </div>
-            <dl className="mt-3 grid gap-2 sm:grid-cols-3">
-              <div>
-                <dt className="text-xs text-muted-foreground">Statut HTTP</dt>
-                <dd className="font-medium">{health.data.status || "—"}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Latence</dt>
-                <dd className="font-medium">{health.data.latencyMs} ms</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">Vérifié à</dt>
-                <dd className="font-medium">
-                  {new Date(health.data.checkedAt).toLocaleTimeString("fr-FR")}
-                </dd>
-              </div>
-            </dl>
-            {health.data.error && (
-              <p className="mt-2 text-destructive">{health.data.error}</p>
-            )}
-          </div>
-        )}
+        <HealthPanel
+          host={host}
+          port={port}
+          loading={health.isLoading}
+          data={health.data}
+        />
       </Card>
+    </div>
+  );
+}
+
+function HealthPanel({
+  host,
+  port,
+  loading,
+  data,
+}: {
+  host: string;
+  port: number;
+  loading: boolean;
+  data:
+    | {
+        online: boolean;
+        configured: boolean;
+        heartbeat:
+          | {
+              nas_host: string | null;
+              nas_reachable: boolean;
+              smb_connected: boolean;
+              share_accessible?: boolean;
+              last_error: string | null;
+              updated_at: string;
+            }
+          | null;
+      }
+    | undefined;
+}) {
+  const hb = data?.heartbeat;
+  const online = data?.online === true;
+  const nasOk = Boolean(hb?.nas_reachable);
+  const reachable = online && nasOk;
+
+  return (
+    <div className="rounded-md border p-4 text-sm space-y-3">
+      <div className="flex items-center gap-2">
+        {loading ? (
+          <Badge variant="secondary">
+            <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Vérification
+          </Badge>
+        ) : reachable ? (
+          <Badge className="bg-emerald-600 text-white">
+            <CircleCheck className="mr-1 h-3 w-3" /> Joignable
+          </Badge>
+        ) : (
+          <Badge variant="destructive">
+            <CircleX className="mr-1 h-3 w-3" /> Injoignable
+          </Badge>
+        )}
+        <span className="text-muted-foreground">
+          {host}:{port}
+        </span>
+      </div>
+
+      <dl className="grid gap-2 sm:grid-cols-3">
+        <div>
+          <dt className="text-xs text-muted-foreground">Gateway local</dt>
+          <dd className="font-medium">
+            {online ? "En ligne" : data?.configured === false ? "Non configuré" : "Hors ligne"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">SMB / Partage</dt>
+          <dd className="font-medium">
+            {hb
+              ? `${hb.smb_connected ? "connecté" : "déconnecté"} · ${hb.share_accessible === false ? "partage KO" : "partage OK"}`
+              : "—"}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Dernier heartbeat</dt>
+          <dd className="font-medium">
+            {hb ? new Date(hb.updated_at).toLocaleTimeString("fr-FR") : "—"}
+          </dd>
+        </div>
+      </dl>
+
+      {hb?.last_error && !reachable && (
+        <p className="text-destructive">{hb.last_error}</p>
+      )}
+
+      <div className="flex items-start gap-2 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        <span>
+          Le statut ci-dessus provient du <strong>GECO Synology Gateway</strong> installé sur
+          votre LAN — la seule machine capable d'atteindre {host} sur votre réseau privé. Le
+          serveur cloud ne peut pas tester directement une IP interne (192.168.x.x).
+        </span>
+      </div>
     </div>
   );
 }
