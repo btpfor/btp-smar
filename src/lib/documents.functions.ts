@@ -639,3 +639,122 @@ export const softDeleteDocument = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+// ============================================================
+// STORAGE STATS (Phase 4 — page /synology)
+// ============================================================
+export const getStorageStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const admin = await isAdmin(context.supabase, context.userId);
+    if (!admin) throw new Error("FORBIDDEN");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [
+      { count: docsActive },
+      { count: docsArchived },
+      { count: versionsPending },
+      { count: versionsUploading },
+      { count: versionsStored },
+      { count: versionsFailed },
+      { count: jobsPending },
+      { count: jobsRunning },
+      { count: jobsFailed },
+      { count: jobsCompleted },
+    ] = await Promise.all([
+      supabaseAdmin.from("documents").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
+      supabaseAdmin.from("documents").select("*", { count: "exact", head: true }).eq("status", "ARCHIVED"),
+      supabaseAdmin.from("document_versions").select("*", { count: "exact", head: true }).eq("storage_status", "PENDING_STORAGE"),
+      supabaseAdmin.from("document_versions").select("*", { count: "exact", head: true }).eq("storage_status", "UPLOADING"),
+      supabaseAdmin.from("document_versions").select("*", { count: "exact", head: true }).eq("storage_status", "STORED"),
+      supabaseAdmin.from("document_versions").select("*", { count: "exact", head: true }).eq("storage_status", "STORAGE_FAILED"),
+      supabaseAdmin.from("file_jobs").select("*", { count: "exact", head: true }).eq("status", "PENDING"),
+      supabaseAdmin.from("file_jobs").select("*", { count: "exact", head: true }).in("status", ["CLAIMED", "RUNNING"]),
+      supabaseAdmin.from("file_jobs").select("*", { count: "exact", head: true }).eq("status", "FAILED"),
+      supabaseAdmin.from("file_jobs").select("*", { count: "exact", head: true }).eq("status", "COMPLETED"),
+    ]);
+
+    const { data: failed } = await supabaseAdmin
+      .from("file_jobs")
+      .select("id,type,error,attempt_count,updated_at,document_id")
+      .eq("status", "FAILED")
+      .order("updated_at", { ascending: false })
+      .limit(10);
+
+    return {
+      documents: { active: docsActive ?? 0, archived: docsArchived ?? 0 },
+      versions: {
+        pending: versionsPending ?? 0,
+        uploading: versionsUploading ?? 0,
+        stored: versionsStored ?? 0,
+        failed: versionsFailed ?? 0,
+      },
+      fileJobs: {
+        pending: jobsPending ?? 0,
+        running: jobsRunning ?? 0,
+        failed: jobsFailed ?? 0,
+        completed: jobsCompleted ?? 0,
+      },
+      recentFailures: failed ?? [],
+    };
+  });
+
+// ============================================================
+// RETRY FAILED FILE JOBS
+// ============================================================
+export const retryFailedFileJobs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => (data ?? {}) as { jobId?: string })
+  .handler(async ({ data, context }) => {
+    const admin = await isAdmin(context.supabase, context.userId);
+    if (!admin) throw new Error("FORBIDDEN");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const patch = {
+      status: "PENDING" as const,
+      attempt_count: 0,
+      error: null,
+      next_retry_at: null,
+      claimed_at: null,
+      started_at: null,
+    };
+
+    if (data.jobId) {
+      const { error } = await supabaseAdmin.from("file_jobs").update(patch).eq("id", data.jobId);
+      if (error) throw new Error(error.message);
+      return { requeued: 1 };
+    }
+    const { data: rows, error } = await supabaseAdmin
+      .from("file_jobs")
+      .update(patch)
+      .eq("status", "FAILED")
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { requeued: rows?.length ?? 0 };
+  });
+
+// ============================================================
+// DOCUMENT AUDIT (Phase 4 — journal admin)
+// ============================================================
+export const listDocumentAudit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (data: unknown) =>
+      (data ?? {}) as { projectId?: string; documentId?: string; limit?: number },
+  )
+  .handler(async ({ data, context }) => {
+    const admin = await isAdmin(context.supabase, context.userId);
+    if (!admin) throw new Error("FORBIDDEN");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let q = supabaseAdmin
+      .from("document_audit")
+      .select("id,user_id,document_id,document_version_id,project_id,action,result,metadata,created_at")
+      .order("created_at", { ascending: false })
+      .limit(Math.min(Math.max(data.limit ?? 200, 1), 500));
+    if (data.projectId) q = q.eq("project_id", data.projectId);
+    if (data.documentId) q = q.eq("document_id", data.documentId);
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
