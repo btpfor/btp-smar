@@ -29,8 +29,26 @@ line("GECO_API_URL", env.GECO_API_URL);
 line("SYNOLOGY_HOST", env.SYNOLOGY_HOST);
 line("SYNOLOGY_SMB_SHARE", env.SYNOLOGY_SMB_SHARE);
 line("SYNOLOGY_SMB_DOMAIN", env.SYNOLOGY_SMB_DOMAIN);
-line("SYNOLOGY_SMB_USERNAME", env.SYNOLOGY_SMB_USERNAME);
-line("SYNOLOGY_SMB_PASSWORD", "(masqué)");
+
+if (env.SYNOLOGY_SMB_USERNAME && env.SYNOLOGY_SMB_PASSWORD) {
+  line("SYNOLOGY_SMB_USERNAME", env.SYNOLOGY_SMB_USERNAME);
+  line("SYNOLOGY_SMB_PASSWORD", "(présent dans .env — envisager Credential Manager)");
+} else {
+  const { readCredential } = await import("../security/credentials.js");
+  const info = await readCredential(env.SYNOLOGY_HOST);
+  if (info.present) {
+    line("Credentials SMB", `Windows Credential Manager (user: ${info.user ?? "?"})`);
+  } else {
+    console.error(
+      `\n[ERREUR] Aucun identifiant SMB : ni SYNOLOGY_SMB_USERNAME/PASSWORD dans .env, ni entrée cmdkey pour ${env.SYNOLOGY_HOST}.`,
+    );
+    console.error("→ Solution : npm run credentials -- set <user> <password>");
+    process.exit(1);
+  }
+}
+
+line("Retries SMB", String(env.SMB_RECONNECT_MAX_RETRIES));
+line("Backoff (min/max ms)", `${env.SMB_RECONNECT_MIN_DELAY_MS} / ${env.SMB_RECONNECT_MAX_DELAY_MS}`);
 
 console.log("\n✔ Environnement valide. Lancer maintenant :");
 console.log("    npm run test:synology");
