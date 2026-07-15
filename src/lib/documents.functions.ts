@@ -549,7 +549,11 @@ export const moveDocument = createServerFn({ method: "POST" })
       await assertProjectAccess(context.supabase, context.userId, data.projectId);
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      project_id?: string | null;
+      folder_id?: string | null;
+      category?: DocCategory;
+    } = {};
     if (data.projectId !== undefined) patch.project_id = data.projectId;
     if (data.folderId !== undefined) patch.folder_id = data.folderId;
     if (data.category) patch.category = data.category;
@@ -558,6 +562,7 @@ export const moveDocument = createServerFn({ method: "POST" })
       .from("documents")
       .update(patch)
       .eq("id", data.documentId);
+
     if (error) throw new Error(error.message);
 
     await audit({
