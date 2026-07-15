@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   HardDrive,
   RefreshCw,
@@ -9,12 +10,18 @@ import {
   ListTodo,
   AlertTriangle,
   FileClock,
+  FileText,
+  UploadCloud,
+  CheckCircle2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRoles } from "@/hooks/use-auth";
 import { getGatewayStatus, runGatewaySync } from "@/lib/gateway.functions";
+import { getStorageStats, retryFailedFileJobs } from "@/lib/documents.functions";
 
 export const Route = createFileRoute("/_authenticated/synology")({
   head: () => ({ meta: [{ title: "Stockage & Synology — GECO" }] }),
