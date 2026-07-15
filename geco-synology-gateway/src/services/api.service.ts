@@ -1,6 +1,6 @@
 import { request } from "undici";
 import { env } from "../config/env.js";
-import { signOutgoing } from "../security/hmac.js";
+import { signOutgoing, type SignedHeaders } from "../security/hmac.js";
 import { logger } from "../utils/logger.js";
 import { retryWithBackoff } from "../utils/retry.js";
 
@@ -25,9 +25,21 @@ class HttpError extends Error {
   }
 }
 
+function toHttpHeaders(signed: SignedHeaders, hasJsonBody: boolean): Record<string, string> {
+  const headers: Record<string, string> = {
+    "x-geco-gateway-id": signed["x-geco-gateway-id"],
+    "x-geco-timestamp": signed["x-geco-timestamp"],
+    "x-geco-nonce": signed["x-geco-nonce"],
+    "x-geco-signature": signed["x-geco-signature"],
+    accept: "application/json",
+  };
+  if (hasJsonBody) headers["content-type"] = "application/json";
+  return headers;
+}
+
 async function call<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
   const payload = body ? JSON.stringify(body) : "";
-  const headers = signOutgoing(method, path, payload);
+  const headers = toHttpHeaders(signOutgoing(method, path, payload), payload.length > 0);
   const url = new URL(path, env.GECO_API_URL);
   const res = await request(url, {
     method,

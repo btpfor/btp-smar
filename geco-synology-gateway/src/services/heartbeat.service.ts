@@ -21,14 +21,15 @@ let timer: NodeJS.Timeout | null = null;
 /**
  * Construit le payload heartbeat en interrogeant réellement le NAS
  * via SMB (test de connexion + lecture racine du partage GECO).
- * Les octets total/utilisé/disponible ne sont pas exposés par SMB2 :
+ * Les octets total/utilisé/disponible ne sont pas exposés de façon fiable
+ * par le client Windows sur chemin UNC :
  * on renvoie null si aucune information fiable n'est disponible.
  */
 export async function buildHeartbeatPayload(opts: {
   pendingJobs: number;
   lastSyncAt: number | null;
 }): Promise<Parameters<typeof api.sendHeartbeat>[0]> {
-  const smbStatus = await smb.testConnection();
+  const smbStatus = await smb.healthCheck();
   const failedCount = db
     .prepare("SELECT COUNT(*) as c FROM job_history WHERE status='FAILED'")
     .get() as { c: number };
@@ -36,12 +37,22 @@ export async function buildHeartbeatPayload(opts: {
   return {
     gatewayVersion: VERSION,
     nasHost: env.SYNOLOGY_HOST,
-    nasReachable: smbStatus.ok,
-    smbConnected: smbStatus.ok,
+    nasReachable: smbStatus.nasAccessible,
+    smbConnected: smbStatus.smbConnected,
+    shareAccessible: smbStatus.shareAccessible,
+    readAllowed: smbStatus.readAllowed,
+    writeAllowed: smbStatus.writeAllowed,
     totalBytes: null,
     usedBytes: null,
     availableBytes: null,
-    lastError: smbStatus.ok ? null : smbStatus.message ?? "SMB unreachable",
+    lastError:
+      smbStatus.nasAccessible &&
+      smbStatus.smbConnected &&
+      smbStatus.shareAccessible &&
+      smbStatus.readAllowed &&
+      smbStatus.writeAllowed
+        ? null
+        : smbStatus.message ?? "SMB health check failed",
     pendingJobs: opts.pendingJobs,
     failedJobs: failedCount.c,
     lastSyncAt: opts.lastSyncAt ? new Date(opts.lastSyncAt).toISOString() : null,
