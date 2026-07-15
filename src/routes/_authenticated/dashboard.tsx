@@ -91,6 +91,10 @@ function Dashboard() {
         <StatCard icon={TrendingUp} label="Avancement moyen" value={`${stats.avgProgress}%`} tone="primary" />
       </div>
 
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <SynologyHealthCard />
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
