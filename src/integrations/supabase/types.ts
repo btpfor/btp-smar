@@ -242,10 +242,13 @@ export type Database = {
           nas_host: string | null
           nas_reachable: boolean
           pending_jobs: number
+          read_allowed: boolean
+          share_accessible: boolean
           smb_connected: boolean
           total_bytes: number | null
           updated_at: string
           used_bytes: number | null
+          write_allowed: boolean
         }
         Insert: {
           available_bytes?: number | null
@@ -258,10 +261,13 @@ export type Database = {
           nas_host?: string | null
           nas_reachable?: boolean
           pending_jobs?: number
+          read_allowed?: boolean
+          share_accessible?: boolean
           smb_connected?: boolean
           total_bytes?: number | null
           updated_at?: string
           used_bytes?: number | null
+          write_allowed?: boolean
         }
         Update: {
           available_bytes?: number | null
@@ -274,10 +280,13 @@ export type Database = {
           nas_host?: string | null
           nas_reachable?: boolean
           pending_jobs?: number
+          read_allowed?: boolean
+          share_accessible?: boolean
           smb_connected?: boolean
           total_bytes?: number | null
           updated_at?: string
           used_bytes?: number | null
+          write_allowed?: boolean
         }
         Relationships: []
       }
