@@ -897,8 +897,9 @@ function NewFolderDialog({
         <div>
           <Label className="text-xs">Accès limité aux rôles</Label>
           <p className="mb-2 text-[11px] text-muted-foreground">
-            Laissez tout décoché pour autoriser tous les membres du projet. Les administrateurs voient
-            toujours tous les dossiers.
+            Sélectionnez les profils autorisés. Sans sélection, seuls les administrateurs,
+            chefs de projet et membres du projet pourront voir ce dossier — jamais tous les
+            utilisateurs authentifiés.
           </p>
           <div className="space-y-2">
             {(Object.keys(ROLE_LABELS) as AppRole[])
